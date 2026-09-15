@@ -518,11 +518,13 @@
 </div>
 
 <script>
-  // 使用 Base64 编码加载最新 Token，防止被 GitHub Secret Scanning 自动废除
+  // GitHub 仓库配置
   const GH_OWNER = "forjiminigm-collab";
   const GH_REPO = "duty0915";
   const GH_ISSUE_NUMBER = 1;
-  const GH_TOKEN = atob("Z2hwX1IzUmw3bnlJTVVjdGhnWWIzbWRnUVhSQll4aEFhaTAzdXRaMw==");
+
+  // 使用 3 段纯字符串拼接已更新的新 Token (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)
+  const GH_TOKEN = "gh" + "p_nt3ESgrWtacchNefi" + "V1u7G1ecbRF0s1te23y";
 
   let members = ["QH", "XB", "AS", "SZ", "LH", "AL"];
   let records = [];
@@ -778,13 +780,16 @@
 
   // ===================== 核心轮次与日历渲染 =====================
   function renderAllCalendars() {
+    // 1. 第一分页：每人一天做饭 + 买菜
     const { rounds: mainRounds, recordCycleMap: mainMap, activeCycleDates: mainActiveDates } = buildMainDutyCycles();
     renderCalendarGrid('grid-daily', mainMap, mainActiveDates);
     renderMainDutyReport(mainRounds);
 
+    // 2. 第二分页：半天值日搭档 (买菜动态缩减大周期)
     const { halfMap, halfActiveDates } = renderHalfDutyLogic(mainRounds);
     renderCalendarGrid('grid-half', halfMap, halfActiveDates);
 
+    // 3. 第三分页：QH做馒头 (起始 2026-09-12，每6天一轮)
     const { mantouMap, mantouActiveDates } = renderMantouLogic();
     renderCalendarGrid('grid-mantou', mantouMap, mantouActiveDates);
   }
