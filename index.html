@@ -20,7 +20,7 @@
       padding: 16px;
     }
     .container {
-      max-width: 860px;
+      max-width: 900px;
       margin: 0 auto;
     }
     header {
@@ -69,35 +69,39 @@
       justify-content: space-between;
       align-items: center;
     }
-    /* 概览统计 */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-    .stat-card {
-      background: #fff;
+
+    /* 轮次概览专区 */
+    .cycle-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       padding: 14px;
-      border-left: 4px solid var(--primary);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      margin-bottom: 12px;
     }
-    .stat-card h3 {
-      margin: 0 0 4px 0;
-      font-size: 0.92rem;
-      color: #475569;
-    }
-    .stat-card .desc {
-      font-size: 0.78rem;
-      color: #94a3b8;
-    }
-    .stat-card .recent {
-      margin-top: 8px;
+    .cycle-card h4 {
+      margin: 0 0 8px 0;
+      color: #334155;
       font-size: 0.95rem;
-      font-weight: bold;
-      color: #0f172a;
+      display: flex;
+      justify-content: space-between;
     }
+    .cycle-row {
+      margin-bottom: 8px;
+      padding: 8px;
+      background: #ffffff;
+      border-radius: 6px;
+      border-left: 3px solid #64748b;
+      font-size: 0.85rem;
+    }
+    .member-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin: 2px 4px 2px 0;
+    }
+    .tag-done { background: #dcfce7; color: #166534; font-weight: bold; }
+    .tag-undone { background: #fee2e2; color: #991b1b; font-weight: bold; }
 
     /* 表单 */
     .form-grid {
@@ -145,6 +149,7 @@
     th, td {
       padding: 10px;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
     th {
       background: #f1f5f9;
@@ -160,35 +165,73 @@
     .badge-daily { background: #e0e7ff; color: #3730a3; }
     .badge-half { background: #fef3c7; color: #92400e; }
     .badge-mantou { background: #dcfce7; color: #166534; }
+
+    .btn-action {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 4px;
+    }
+    .btn-edit { background: #3b82f6; color: white; }
+    .btn-del { background: #ef4444; color: white; }
+
+    /* 编辑弹窗 Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .modal-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>🍳 厨房打卡系统 (实时共享)</h1>
+    <h1>🍳 厨房值日打卡系统</h1>
     <div class="status-banner">
       <span class="dot" id="status-dot"></span>
-      <span id="status-text">正在连接云端...</span>
+      <span id="status-text">正在同步云端...</span>
     </div>
   </header>
 
-  <!-- 看板 -->
-  <div class="stats-grid">
-    <div class="stat-card" style="border-left-color: #4f46e5;">
-      <h3>1. 每日主做轮次 (6天一轮)</h3>
-      <div class="desc">QH做半天，其余人做全天</div>
-      <div class="recent" id="stat-daily">加载中...</div>
+  <!-- 轮次跟踪概览窗口 -->
+  <div class="card">
+    <div class="card-title">
+      <span>📊 三种值日轮次追踪（最近 3 轮情况）</span>
+      <button onclick="fetchData(true)" style="width: auto; padding: 4px 10px; font-size: 0.8rem; background: #f1f5f9;">🔄 刷新记录</button>
     </div>
-    <div class="stat-card" style="border-left-color: #f59e0b;">
-      <h3>2. 半天值日签到</h3>
-      <div class="desc">配合QH做另半天的人</div>
-      <div class="recent" id="stat-half">加载中...</div>
+
+    <!-- 轮次1 -->
+    <div class="cycle-card">
+      <h4 style="color:#4f46e5;">1. 每日主做轮班 (6天一轮，一人一天，QH半天)</h4>
+      <div id="cycle-daily-box">加载中...</div>
     </div>
-    <div class="stat-card" style="border-left-color: #10b981;">
-      <h3>3. QH 馒头签到 (每6天2次)</h3>
-      <div class="desc">QH负责做馒头</div>
-      <div class="recent" id="stat-mantou">加载中...</div>
+
+    <!-- 轮次2 -->
+    <div class="cycle-card">
+      <h4 style="color:#d97706;">2. 半天值日搭档 (配合QH另外半天，6人轮流)</h4>
+      <div id="cycle-half-box">加载中...</div>
+    </div>
+
+    <!-- 轮次3 -->
+    <div class="cycle-card">
+      <h4 style="color:#166534;">3. QH 做馒头 (每轮 6 天内做 2 次)</h4>
+      <div id="cycle-mantou-box">加载中...</div>
     </div>
   </div>
 
@@ -196,12 +239,11 @@
   <div class="card">
     <div class="card-title">
       <span>📝 我要打卡</span>
-      <button onclick="fetchData(true)" style="width: auto; padding: 4px 10px; font-size: 0.8rem; background: #f1f5f9;">🔄 刷新数据</button>
     </div>
     <div class="form-grid">
       <div>
         <label for="record-type">打卡类型</label>
-        <select id="record-type" onchange="handleTypeChange()">
+        <select id="record-type" onchange="handleTypeChange('record-type', 'member-select')">
           <option value="daily">1. 轮次做饭签到 (全天或QH半天)</option>
           <option value="half">2. 半天值日签到 (搭档QH的另外半天)</option>
           <option value="mantou">3. QH做馒头签到 (6天2次)</option>
@@ -216,13 +258,13 @@
         <input type="date" id="record-date" />
       </div>
     </div>
-    <button class="btn-primary" id="submit-btn" onclick="submitRecord()">提交打卡并同步全员</button>
+    <button class="btn-primary" id="submit-btn" onclick="submitRecord()">提交打卡并同步</button>
   </div>
 
-  <!-- 过往打卡明细 -->
+  <!-- 过往明细与修改/删除 -->
   <div class="card">
     <div class="card-title">
-      <span>📋 全员历史打卡记录</span>
+      <span>📋 全员打卡历史 (支持修改/删除)</span>
       <span style="font-size: 0.8rem; color: #94a3b8;" id="record-count">共 0 条</span>
     </div>
     <div class="table-responsive">
@@ -230,19 +272,20 @@
         <thead>
           <tr>
             <th>日期</th>
-            <th>类型</th>
+            <th>打卡类型</th>
             <th>打卡人</th>
-            <th>签到时间</th>
+            <th>打卡时间</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="record-table-body">
-          <tr><td colspan="4" style="text-align:center; color:#94a3b8;">正在加载云端数据...</td></tr>
+          <tr><td colspan="5" style="text-align:center; color:#94a3b8;">加载中...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- 人员管理设置 -->
+  <!-- 名单设置 -->
   <div class="card" style="border-style: dashed;">
     <div class="card-title">
       <span>⚙️ 成员名单设置</span>
@@ -258,20 +301,41 @@
   </div>
 </div>
 
+<!-- 修改打卡记录弹窗 -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-card">
+    <h3 style="margin-top:0;">✏️ 修改打卡记录</h3>
+    <input type="hidden" id="edit-record-id" />
+    <div style="margin-bottom: 12px;">
+      <label>打卡日期</label>
+      <input type="date" id="edit-record-date" />
+    </div>
+    <div style="margin-bottom: 12px;">
+      <label>打卡类型</label>
+      <select id="edit-record-type" onchange="handleTypeChange('edit-record-type', 'edit-member-select')">
+        <option value="daily">1. 轮次做饭签到 (全天或QH半天)</option>
+        <option value="half">2. 半天值日签到 (搭档QH另外半天)</option>
+        <option value="mantou">3. QH做馒头签到 (6天2次)</option>
+      </select>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <label>打卡人</label>
+      <select id="edit-member-select"></select>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-primary" onclick="saveRecordEdit()">保存修改</button>
+      <button style="background: #94a3b8; color: white;" onclick="closeEditModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  // 已填入你的 JSONBin 配置，所有人直接开箱即用
+  // 云端存储密钥
   const DEFAULT_BIN_ID = "6aa8f53effd5d1605308a794";
   const DEFAULT_API_KEY = "$2a$10$Q/wbx3jQ3S.c4feOYtQ2OO3FmpOYrAD7cHoucZPi08k5KyVCnoTjq";
 
   let members = ["QH", "成员A", "成员B", "成员C", "成员D", "成员E"];
   let records = [];
-
-  function getBinId() {
-    return DEFAULT_BIN_ID;
-  }
-  function getApiKey() {
-    return DEFAULT_API_KEY;
-  }
 
   window.onload = function() {
     const today = new Date().toISOString().split('T')[0];
@@ -290,21 +354,15 @@
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
   }
 
-  // 1. 从云端拉取数据 (GET)
+  // 1. 获取云端数据
   async function fetchData(manual = false) {
-    const binId = getBinId();
-    const apiKey = getApiKey();
-
-    updateStatus('syncing', '正在同步云端最新打卡...');
+    updateStatus('syncing', '正在同步数据...');
     try {
-      const resp = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      const resp = await fetch(`https://api.jsonbin.io/v3/b/${DEFAULT_BIN_ID}/latest`, {
         method: 'GET',
-        headers: {
-          'X-Master-Key': apiKey
-        }
+        headers: { 'X-Master-Key': DEFAULT_API_KEY }
       });
-      if (!resp.ok) throw new Error('云端读取失败，请检查网络或配置');
-
+      if (!resp.ok) throw new Error('网络请求异常');
       const resJson = await resp.json();
       const data = resJson.record;
 
@@ -314,27 +372,39 @@
       }
       records = Array.isArray(data.records) ? data.records : [];
 
-      renderMemberSelect();
+      renderMemberSelects();
       renderRecords();
-      updateStats();
-      updateStatus('online', '已连接云端 (数据全员实时同步)');
-      if (manual) alert('已刷新为最新打卡数据！');
+      renderCycleOverview();
+      updateStatus('online', '已连接云端 (实时同步)');
+      if (manual) alert('已更新到最新记录！');
     } catch (err) {
       console.error(err);
-      updateStatus('error', '同步失败：' + err.message);
+      updateStatus('error', '同步失败，请检查网络');
     }
   }
 
-  // 2. 提交新打卡到云端 (PUT)
+  // 2. 保存全量数据到云端
+  async function pushToCloud(newRecords, newMembers) {
+    const resp = await fetch(`https://api.jsonbin.io/v3/b/${DEFAULT_BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': DEFAULT_API_KEY
+      },
+      body: JSON.stringify({
+        members: newMembers || members,
+        records: newRecords
+      })
+    });
+    if (!resp.ok) throw new Error('云端保存失败');
+  }
+
+  // 3. 提交新打卡
   async function submitRecord() {
     const type = document.getElementById('record-type').value;
     const member = document.getElementById('member-select').value;
     const date = document.getElementById('record-date').value;
-
-    if (!date) return alert('请选择值日日期');
-
-    const binId = getBinId();
-    const apiKey = getApiKey();
+    if (!date) return alert('请选择打卡日期');
 
     const newRecord = {
       id: Date.now(),
@@ -346,104 +416,217 @@
 
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
-    submitBtn.innerText = '正在同步保存中...';
+    submitBtn.innerText = '正在提交...';
 
     try {
-      // 提交前先取一次最新数据，防止多人同时操作互相覆盖
-      const getResp = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-        headers: { 'X-Master-Key': apiKey }
+      // 重新拉取最新数据防止并发覆盖
+      const latestResp = await fetch(`https://api.jsonbin.io/v3/b/${DEFAULT_BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': DEFAULT_API_KEY }
       });
-      let currentRecords = [];
-      let currentMembers = members;
-      if (getResp.ok) {
-        const curData = await getResp.json();
-        currentRecords = curData.record.records || [];
-        if (curData.record.members) currentMembers = curData.record.members;
-      } else {
-        currentRecords = records;
+      let currentRecords = records;
+      if (latestResp.ok) {
+        const d = await latestResp.json();
+        currentRecords = d.record.records || [];
       }
 
-      // 将最新打卡置顶
       currentRecords.unshift(newRecord);
-
-      // 上传保存到云端
-      const putResp = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': apiKey
-        },
-        body: JSON.stringify({
-          members: currentMembers,
-          records: currentRecords
-        })
-      });
-
-      if (!putResp.ok) throw new Error('保存到云端失败');
+      await pushToCloud(currentRecords, members);
 
       records = currentRecords;
       renderRecords();
-      updateStats();
-      updateStatus('online', '已同步全员最新状态');
-      alert(`🎉 ${member} 的【${getTypeName(type)}】打卡成功！所有人均已可见。`);
-    } catch (err) {
-      alert('打卡失败：' + err.message);
-      updateStatus('error', '上传失败');
+      renderCycleOverview();
+      alert(`🎉 打卡成功！`);
+    } catch (e) {
+      alert('打卡失败: ' + e.message);
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerText = '提交打卡并同步全员';
+      submitBtn.innerText = '提交打卡并同步';
     }
   }
 
-  // 3. 修改人员名单同步到云端
-  async function saveMembers() {
-    const memStr = document.getElementById('cfg-members').value.trim();
-    if (!memStr) return alert('人员名单不能为空');
-    const newMembers = memStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+  // 4. 单行删除
+  async function deleteRecord(id) {
+    if (!confirm('确定要删除这条打卡记录吗？')) return;
+    try {
+      updateStatus('syncing', '正在删除...');
+      const newRecords = records.filter(r => r.id !== id);
+      await pushToCloud(newRecords, members);
+      records = newRecords;
+      renderRecords();
+      renderCycleOverview();
+      updateStatus('online', '已同步');
+      alert('删除成功！');
+    } catch (e) {
+      alert('删除失败: ' + e.message);
+      updateStatus('error', '删除失败');
+    }
+  }
+
+  // 5. 单行编辑
+  function openEditModal(id) {
+    const item = records.find(r => r.id === id);
+    if (!item) return;
+
+    document.getElementById('edit-record-id').value = item.id;
+    document.getElementById('edit-record-date').value = item.date;
+    document.getElementById('edit-record-type').value = item.type;
+    renderMemberSelects();
+    document.getElementById('edit-member-select').value = item.member;
+    handleTypeChange('edit-record-type', 'edit-member-select');
+
+    document.getElementById('edit-modal').style.display = 'flex';
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+  }
+
+  async function saveRecordEdit() {
+    const id = Number(document.getElementById('edit-record-id').value);
+    const date = document.getElementById('edit-record-date').value;
+    const type = document.getElementById('edit-record-type').value;
+    const member = document.getElementById('edit-member-select').value;
+    if (!date) return alert('日期不能为空');
 
     try {
-      const putResp = await fetch(`https://api.jsonbin.io/v3/b/${getBinId()}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': getApiKey()
-        },
-        body: JSON.stringify({
-          members: newMembers,
-          records: records
-        })
+      updateStatus('syncing', '正在保存修改...');
+      const newRecords = records.map(r => {
+        if (r.id === id) {
+          return { ...r, date, type, member };
+        }
+        return r;
       });
-      if (!putResp.ok) throw new Error('更新名单失败');
-      members = newMembers;
-      renderMemberSelect();
-      alert('人员名单已保存并同步至云端！');
+
+      await pushToCloud(newRecords, members);
+      records = newRecords;
+      renderRecords();
+      renderCycleOverview();
+      closeEditModal();
+      updateStatus('online', '已同步修改');
+      alert('记录修改成功！');
     } catch (e) {
-      alert('保存名单失败: ' + e.message);
+      alert('保存修改失败: ' + e.message);
+      updateStatus('error', '修改失败');
     }
   }
 
-  function getTypeName(type) {
-    if (type === 'daily') return '6天轮次做饭';
-    if (type === 'half') return '半天值日';
-    if (type === 'mantou') return 'QH做馒头';
-    return type;
+  // 6. 渲染轮次追踪 (最近 3 轮概况)
+  function renderCycleOverview() {
+    // 按时间顺序对记录排队（从新到旧）
+    const dailyRecords = records.filter(r => r.type === 'daily');
+    const halfRecords = records.filter(r => r.type === 'half');
+    const mantouRecords = records.filter(r => r.type === 'mantou');
+
+    // 渲染常规做饭 (每6次为一轮)
+    renderMemberCycles('cycle-daily-box', dailyRecords, 6);
+    // 渲染半天做饭 (每6次为一轮)
+    renderMemberCycles('cycle-half-box', halfRecords, 6);
+    // 渲染馒头轮次 (每2次为一轮)
+    renderMantouCycles('cycle-mantou-box', mantouRecords);
   }
 
-  function renderMemberSelect() {
-    const sel = document.getElementById('member-select');
-    sel.innerHTML = '';
-    members.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m;
-      opt.innerText = m;
-      sel.appendChild(opt);
+  function renderMemberCycles(elementId, typeRecords, cycleSize) {
+    const box = document.getElementById(elementId);
+    box.innerHTML = '';
+
+    if (typeRecords.length === 0) {
+      box.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">暂无打卡记录</div>';
+      return;
+    }
+
+    // 分割成最近 3 轮
+    for (let c = 0; c < 3; c++) {
+      const start = c * cycleSize;
+      const end = start + cycleSize;
+      const chunk = typeRecords.slice(start, end);
+
+      if (chunk.length === 0 && c > 0) break; // 没有更多历史轮次
+
+      const roundTitle = c === 0 ? '🔥 当前最新一轮' : `第 前 ${c} 轮`;
+      const doneMembers = chunk.map(r => r.member);
+      const undoneMembers = members.filter(m => !doneMembers.includes(m));
+
+      const row = document.createElement('div');
+      row.className = 'cycle-row';
+      row.innerHTML = `
+        <div style="font-weight:600; margin-bottom: 4px; display:flex; justify-content:space-between;">
+          <span>${roundTitle} (已打卡 ${chunk.length}/${cycleSize})</span>
+          <span style="font-size:0.75rem; color:#64748b;">${chunk[chunk.length - 1]?.date || ''} ~ ${chunk[0]?.date || ''}</span>
+        </div>
+        <div>
+          <span style="color: #166534; font-size:0.8rem;">已打卡：</span>
+          ${doneMembers.length > 0 
+            ? doneMembers.map(m => `<span class="member-tag tag-done">✓ ${m}</span>`).join('') 
+            : '<span style="color:#94a3b8; font-size:0.75rem;">无</span>'}
+        </div>
+        <div style="margin-top: 4px;">
+          <span style="color: #991b1b; font-size:0.8rem;">未打卡：</span>
+          ${undoneMembers.length > 0 
+            ? undoneMembers.map(m => `<span class="member-tag tag-undone">✗ ${m}</span>`).join('') 
+            : '<span style="color:#166534; font-size:0.75rem; font-weight:bold;">🎉 本轮全员已打完！</span>'}
+        </div>
+      `;
+      box.appendChild(row);
+    }
+  }
+
+  function renderMantouCycles(elementId, mantouList) {
+    const box = document.getElementById(elementId);
+    box.innerHTML = '';
+
+    if (mantouList.length === 0) {
+      box.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">暂无做馒头记录</div>';
+      return;
+    }
+
+    // 馒头每 6 天 2 次
+    for (let c = 0; c < 3; c++) {
+      const chunk = mantouList.slice(c * 2, c * 2 + 2);
+      if (chunk.length === 0 && c > 0) break;
+
+      const roundTitle = c === 0 ? '🔥 当前最新一轮' : `第 前 ${c} 轮`;
+      const count = chunk.length;
+      const statusText = count >= 2 
+        ? '<span style="color:#166534; font-weight:bold;">✓ 本轮已做满 2 次</span>' 
+        : `<span style="color:#991b1b; font-weight:bold;">✗ 尚差 ${2 - count} 次未打卡</span>`;
+
+      const row = document.createElement('div');
+      row.className = 'cycle-row';
+      row.innerHTML = `
+        <div style="font-weight:600; margin-bottom: 4px; display:flex; justify-content:space-between;">
+          <span>${roundTitle} (QH已做 ${count}/2 次)</span>
+          <span>${statusText}</span>
+        </div>
+        <div style="font-size:0.8rem; color:#64748b;">
+          打卡日期：${chunk.map(item => item.date).join('，') || '暂无'}
+        </div>
+      `;
+      box.appendChild(row);
+    }
+  }
+
+  // 7. 页面其他功能渲染
+  function renderMemberSelects() {
+    const selects = ['member-select', 'edit-member-select'];
+    selects.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const cur = el.value;
+      el.innerHTML = '';
+      members.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        el.appendChild(opt);
+      });
+      if (cur) el.value = cur;
     });
-    handleTypeChange();
+    handleTypeChange('record-type', 'member-select');
   }
 
-  function handleTypeChange() {
-    const type = document.getElementById('record-type').value;
-    const sel = document.getElementById('member-select');
+  function handleTypeChange(typeElemId, memberElemId) {
+    const type = document.getElementById(typeElemId).value;
+    const sel = document.getElementById(memberElemId);
     if (type === 'mantou') {
       sel.value = 'QH';
       sel.disabled = true;
@@ -458,14 +641,14 @@
     document.getElementById('record-count').innerText = `共 ${records.length} 条`;
 
     if (records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">暂无打卡数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">暂无打卡数据</td></tr>';
       return;
     }
 
     const badgeMap = {
       daily: '<span class="badge badge-daily">6天轮次</span>',
       half: '<span class="badge badge-half">半天搭档</span>',
-      mantou: '<span class="badge badge-mantou">QH做馒头</span>'
+      mantou: '<span class="badge badge-mantou">QH馒头</span>'
     };
 
     records.forEach(r => {
@@ -474,29 +657,29 @@
         <td>${r.date}</td>
         <td>${badgeMap[r.type] || r.type}</td>
         <td><strong>${r.member}</strong></td>
-        <td style="color:#64748b; font-size:0.8rem;">${r.timestamp}</td>
+        <td style="color:#64748b; font-size:0.8rem;">${r.timestamp || '-'}</td>
+        <td>
+          <button class="btn-action btn-edit" onclick="openEditModal(${r.id})">修改</button>
+          <button class="btn-action btn-del" onclick="deleteRecord(${r.id})">删除</button>
+        </td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  function updateStats() {
-    const latestDaily = records.find(r => r.type === 'daily');
-    const latestHalf = records.find(r => r.type === 'half');
-    const mantouList = records.filter(r => r.type === 'mantou');
+  async function saveMembers() {
+    const memStr = document.getElementById('cfg-members').value.trim();
+    if (!memStr) return alert('人员不能为空');
+    const newMembers = memStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
 
-    document.getElementById('stat-daily').innerText = latestDaily 
-      ? `${latestDaily.member} (${latestDaily.date})` 
-      : '暂无记录';
-
-    document.getElementById('stat-half').innerText = latestHalf 
-      ? `${latestHalf.member} (${latestHalf.date})` 
-      : '暂无记录';
-
-    if (mantouList.length > 0) {
-      document.getElementById('stat-mantou').innerText = `最近: ${mantouList[0].date} (已打卡 ${mantouList.length} 次)`;
-    } else {
-      document.getElementById('stat-mantou').innerText = '暂无记录';
+    try {
+      await pushToCloud(records, newMembers);
+      members = newMembers;
+      renderMemberSelects();
+      renderCycleOverview();
+      alert('成员名单已同步修改！');
+    } catch (e) {
+      alert('名单修改失败: ' + e.message);
     }
   }
 </script>
