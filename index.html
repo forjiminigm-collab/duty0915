@@ -125,9 +125,52 @@
       font-size: 0.85rem;
     }
 
-    /* 3 个独立日历卡片 */
+    /* Tab 分页切换栏 */
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      color: #1e293b;
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: #f8fafc;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    /* 分页内容区 */
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .cal-wrapper {
-      margin-bottom: 20px;
       padding: 12px;
       background: #f8fafc;
       border-radius: 10px;
@@ -135,10 +178,12 @@
     }
     .cal-wrapper h3 {
       margin: 0 0 10px 0;
-      font-size: 1rem;
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
     }
 
     .calendar-grid {
@@ -157,7 +202,7 @@
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 6px;
-      min-height: 52px;
+      min-height: 54px;
       padding: 4px;
       display: flex;
       flex-direction: column;
@@ -181,7 +226,7 @@
       color: #4f46e5;
     }
 
-    /* 轮次颜色标识徽章 (每轮循环不同颜色) */
+    /* 轮次颜色标识徽章 */
     .duty-badge {
       font-size: 0.75rem;
       padding: 3px 2px;
@@ -194,13 +239,12 @@
       text-overflow: ellipsis;
       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
-    /* 轮次多色谱 */
-    .cycle-c0 { background: #dbeafe; color: #1e40af; border-left: 3px solid #2563eb; } /* 蓝 */
-    .cycle-c1 { background: #dcfce7; color: #166534; border-left: 3px solid #16a34a; } /* 绿 */
-    .cycle-c2 { background: #ffedd5; color: #9a3412; border-left: 3px solid #ea580c; } /* 橙 */
-    .cycle-c3 { background: #f3e8ff; color: #6b21a8; border-left: 3px solid #9333ea; } /* 紫 */
-    .cycle-c4 { background: #fce7f3; color: #9d174d; border-left: 3px solid #db2777; } /* 粉 */
-    .cycle-c5 { background: #ccfbf1; color: #115e59; border-left: 3px solid #0d9488; } /* 青 */
+    .cycle-c0 { background: #dbeafe; color: #1e40af; border-left: 3px solid #2563eb; }
+    .cycle-c1 { background: #dcfce7; color: #166534; border-left: 3px solid #16a34a; }
+    .cycle-c2 { background: #ffedd5; color: #9a3412; border-left: 3px solid #ea580c; }
+    .cycle-c3 { background: #f3e8ff; color: #6b21a8; border-left: 3px solid #9333ea; }
+    .cycle-c4 { background: #fce7f3; color: #9d174d; border-left: 3px solid #db2777; }
+    .cycle-c5 { background: #ccfbf1; color: #115e59; border-left: 3px solid #0d9488; }
 
     /* 表单及表格 */
     .form-grid {
@@ -275,7 +319,6 @@
     .btn-edit { background: #3b82f6; color: white; }
     .btn-del { background: #ef4444; color: white; }
 
-    /* 弹窗样式 */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -310,43 +353,56 @@
     </div>
   </header>
 
-  <!-- 3 种值日日历视图 -->
+  <!-- 3 种值日分页看板 -->
   <div class="card">
     <div class="card-title">
-      <span>📅 三种值日轮次日历看板</span>
+      <span>📅 值日轮次日历视图</span>
       <div class="cal-controls">
-        <button class="cal-btn" onclick="changeMonth(-1)">◀ 上个月</button>
+        <button class="cal-btn" onclick="changeMonth(-1)">◀ 上月</button>
         <strong id="calendar-current-month" style="color:#0f172a;">2026年9月</strong>
-        <button class="cal-btn" onclick="changeMonth(1)">下个月 ▶</button>
+        <button class="cal-btn" onclick="changeMonth(1)">下月 ▶</button>
         <button class="cal-btn" onclick="fetchData(true)" style="background:#e0e7ff; color:#3730a3;">🔄 刷新</button>
       </div>
     </div>
 
-    <!-- 日历 1: 每日主做 -->
-    <div class="cal-wrapper">
-      <h3 style="color:#2563eb;">
-        <span>1. 每日主做轮班日历 (6天一轮，一人一天，QH做半天)</span>
-        <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">不同颜色代表不同轮次</span>
-      </h3>
-      <div class="calendar-grid" id="grid-daily"></div>
+    <!-- 选项卡切换按纽 -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="btn-tab-daily" onclick="switchTab('daily')">1. 一人一天主做 (默认)</button>
+      <button class="tab-btn" id="btn-tab-half" onclick="switchTab('half')">2. 半天值日搭档</button>
+      <button class="tab-btn" id="btn-tab-mantou" onclick="switchTab('mantou')">3. QH做馒头</button>
     </div>
 
-    <!-- 日历 2: 半天搭档 -->
-    <div class="cal-wrapper">
-      <h3 style="color:#d97706;">
-        <span>2. 半天值日搭档日历 (配合QH做另半天，6人轮流)</span>
-        <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">不同颜色代表不同轮次</span>
-      </h3>
-      <div class="calendar-grid" id="grid-half"></div>
+    <!-- 分页 1: 每日主做 (默认显示) -->
+    <div class="tab-pane active" id="pane-daily">
+      <div class="cal-wrapper">
+        <h3 style="color:#2563eb;">
+          <span>🍳 每日主做轮班 (6天一轮，一人一天，QH做半天)</span>
+          <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">不同背景色表示不同轮次</span>
+        </h3>
+        <div class="calendar-grid" id="grid-daily"></div>
+      </div>
     </div>
 
-    <!-- 日历 3: QH 做馒头 -->
-    <div class="cal-wrapper">
-      <h3 style="color:#16a34a;">
-        <span>3. QH 做馒头日历 (每轮6天内做2次)</span>
-        <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">每2次同色为一轮</span>
-      </h3>
-      <div class="calendar-grid" id="grid-mantou"></div>
+    <!-- 分页 2: 半天搭档 -->
+    <div class="tab-pane" id="pane-half">
+      <div class="cal-wrapper">
+        <h3 style="color:#d97706;">
+          <span>🤝 半天值日搭档 (配合QH做另半天，6人轮流)</span>
+          <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">不同背景色表示不同轮次</span>
+        </h3>
+        <div class="calendar-grid" id="grid-half"></div>
+      </div>
+    </div>
+
+    <!-- 分页 3: QH做馒头 -->
+    <div class="tab-pane" id="pane-mantou">
+      <div class="cal-wrapper">
+        <h3 style="color:#16a34a;">
+          <span>🥟 QH 做馒头 (每轮6天内做2次)</span>
+          <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">每满2次同色为一轮</span>
+        </h3>
+        <div class="calendar-grid" id="grid-mantou"></div>
+      </div>
     </div>
   </div>
 
@@ -373,7 +429,7 @@
         <input type="date" id="record-date" />
       </div>
     </div>
-    <button class="btn-primary" id="submit-btn" onclick="submitRecord()">提交打卡并同步日历</button>
+    <button class="btn-primary" id="submit-btn" onclick="submitRecord()">提交打卡并同步</button>
   </div>
 
   <!-- 打卡明细表 -->
@@ -467,6 +523,19 @@
 
   // 日历当前浏览月份
   let currentCalDate = new Date();
+
+  // Tab 分页切换
+  function switchTab(type) {
+    // 移除所有激活状态
+    ['daily', 'half', 'mantou'].forEach(t => {
+      document.getElementById(`btn-tab-${t}`).classList.remove('active');
+      document.getElementById(`pane-${t}`).classList.remove('active');
+    });
+
+    // 激活选中的分页
+    document.getElementById(`btn-tab-${type}`).classList.add('active');
+    document.getElementById(`pane-${type}`).classList.add('active');
+  }
 
   function showToast(msg, type = 'success') {
     const container = document.getElementById('toast-container');
@@ -595,12 +664,16 @@
       records = currentRecords;
       renderRecords();
       renderAllCalendars();
+
+      // 打卡成功后自动切换到对应的分页，方便直观查看
+      switchTab(type);
+
       showToast(`🎉 ${member} 打卡成功！日历已同步更新`);
     } catch (e) {
       showToast('打卡提交失败: ' + e.message, 'error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerText = '提交打卡并同步日历';
+      submitBtn.innerText = '提交打卡并同步';
     }
   }
 
@@ -681,30 +754,26 @@
     }
   }
 
-  // 6. 核心：渲染 3 个日历及轮次色彩逻辑
+  // 6. 渲染日历及轮次色彩
   function renderAllCalendars() {
-    // 1. 将三种记录按历史时间升序（从早到晚）计算属于第几轮
-    const dailyMap = buildRecordCycleMap('daily', 6);   // 6天一轮
-    const halfMap = buildRecordCycleMap('half', 6);     // 6天一轮
-    const mantouMap = buildRecordCycleMap('mantou', 2); // 2次一轮
+    const dailyMap = buildRecordCycleMap('daily', 6);
+    const halfMap = buildRecordCycleMap('half', 6);
+    const mantouMap = buildRecordCycleMap('mantou', 2);
 
-    // 2. 渲染三个日历网格
     renderCalendarGrid('grid-daily', dailyMap);
     renderCalendarGrid('grid-half', halfMap);
     renderCalendarGrid('grid-mantou', mantouMap);
   }
 
-  // 计算每条打卡归属的轮次序号（升序计算，第0轮、第1轮、第2轮...）
   function buildRecordCycleMap(targetType, cycleSize) {
     const filtered = records
       .filter(r => r.type === targetType)
-      .sort((a, b) => (a.date > b.date ? 1 : -1)); // 从最早到最新排序
+      .sort((a, b) => (a.date > b.date ? 1 : -1));
 
-    // key: "YYYY-MM-DD", value: 数组（当天打卡记录，附带轮次号）
     const map = {};
     filtered.forEach((r, idx) => {
-      const cycleIndex = Math.floor(idx / cycleSize); // 轮次数
-      const colorIndex = cycleIndex % 6;              // 对应 6 种轮换颜色之一
+      const cycleIndex = Math.floor(idx / cycleSize);
+      const colorIndex = cycleIndex % 6;
       if (!map[r.date]) map[r.date] = [];
       map[r.date].push({
         member: r.member,
@@ -715,7 +784,6 @@
     return map;
   }
 
-  // 绘制单个日历网格
   function renderCalendarGrid(containerId, dateMap) {
     const grid = document.getElementById(containerId);
     grid.innerHTML = '';
@@ -731,19 +799,17 @@
     const year = currentCalDate.getFullYear();
     const month = currentCalDate.getMonth();
 
-    const firstDay = new Date(year, month, 1).getDay(); // 1号星期几 (0-6)
-    const daysInMonth = new Date(year, month + 1, 0).getDate(); // 当月总天数
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // 填充月初空白
     for (let i = 0; i < firstDay; i++) {
       const emptyCell = document.createElement('div');
       emptyCell.className = 'cal-day-cell empty';
       grid.appendChild(emptyCell);
     }
 
-    // 填充日期格子
     for (let day = 1; day <= daysInMonth; day++) {
       const cell = document.createElement('div');
       cell.className = 'cal-day-cell';
@@ -753,20 +819,18 @@
         cell.classList.add('cal-today');
       }
 
-      // 日期数字
       const numSpan = document.createElement('span');
       numSpan.className = 'cal-day-num';
       numSpan.innerText = day;
       cell.appendChild(numSpan);
 
-      // 当天打卡的人名与轮次颜色徽章
       const dutyList = dateMap[dStr];
       if (dutyList && dutyList.length > 0) {
         dutyList.forEach(item => {
           const badge = document.createElement('div');
           badge.className = `duty-badge ${item.colorClass}`;
           badge.title = `第 ${item.cycleNum} 轮: ${item.member}`;
-          badge.innerText = item.member; // 显示值日人名
+          badge.innerText = item.member;
           cell.appendChild(badge);
         });
       }
