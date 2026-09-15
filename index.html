@@ -20,35 +20,86 @@
       padding: 16px;
     }
     .container {
-      max-width: 900px;
+      max-width: 860px;
       margin: 0 auto;
     }
     header {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     h1 {
-      margin: 0 0 8px 0;
-      font-size: 1.6rem;
+      margin: 0 0 6px 0;
+      font-size: 1.5rem;
       color: #0f172a;
     }
+    .status-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      background: #e2e8f0;
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+    .dot.online { background: #22c55e; }
+    .dot.syncing { background: #eab308; }
+    .dot.error { background: #ef4444; }
+
     .card {
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
       border: 1px solid var(--border);
     }
     .card-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 600;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    /* 表单控件 */
+    /* 概览统计 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px;
+      border-left: 4px solid var(--primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .stat-card h3 {
+      margin: 0 0 4px 0;
+      font-size: 0.92rem;
+      color: #475569;
+    }
+    .stat-card .desc {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+    .stat-card .recent {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #0f172a;
+    }
+
+    /* 表单 */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -75,41 +126,13 @@
       border: none;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
     }
-    button.btn-primary:active {
-      opacity: 0.85;
+    button.btn-primary:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
     }
-    /* 概览统计卡片 */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .stat-card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 14px;
-      border-left: 4px solid var(--primary);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-    .stat-card h3 {
-      margin: 0 0 6px 0;
-      font-size: 0.95rem;
-      color: #475569;
-    }
-    .stat-card .desc {
-      font-size: 0.8rem;
-      color: #94a3b8;
-    }
-    .stat-card .recent {
-      margin-top: 8px;
-      font-size: 0.9rem;
-      font-weight: bold;
-      color: #0f172a;
-    }
-    /* 记录列表 */
+
+    /* 记录表 */
     .table-responsive {
       overflow-x: auto;
     }
@@ -137,133 +160,274 @@
     .badge-daily { background: #e0e7ff; color: #3730a3; }
     .badge-half { background: #fef3c7; color: #92400e; }
     .badge-mantou { background: #dcfce7; color: #166534; }
-    .settings-drawer {
-      font-size: 0.85rem;
-      margin-top: 8px;
-      background: #f8fafc;
-      padding: 10px;
-      border-radius: 8px;
-    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>🍳 厨房做饭 & 馒头打卡表</h1>
-    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">6天轮次 · 半天配合 · QH做馒头打卡</p>
+    <h1>🍳 厨房打卡系统 (实时共享)</h1>
+    <div class="status-banner">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">正在连接云端...</span>
+    </div>
   </header>
 
-  <!-- 3种值日状态看板 -->
+  <!-- 看板 -->
   <div class="stats-grid">
     <div class="stat-card" style="border-left-color: #4f46e5;">
       <h3>1. 每日主做轮次 (6天一轮)</h3>
-      <div class="desc">QH每轮做半天，其余人做全天</div>
-      <div class="recent" id="stat-daily">最新打卡: 无</div>
+      <div class="desc">QH做半天，其余人做全天</div>
+      <div class="recent" id="stat-daily">加载中...</div>
     </div>
     <div class="stat-card" style="border-left-color: #f59e0b;">
       <h3>2. 半天值日签到</h3>
-      <div class="desc">与QH组合的另外半天（午或晚）</div>
-      <div class="recent" id="stat-half">最新打卡: 无</div>
+      <div class="desc">配合QH做另半天的人</div>
+      <div class="recent" id="stat-half">加载中...</div>
     </div>
     <div class="stat-card" style="border-left-color: #10b981;">
       <h3>3. QH 馒头签到 (每6天2次)</h3>
-      <div class="desc">QH负责，一轮需打卡2次</div>
-      <div class="recent" id="stat-mantou">最新打卡: 无</div>
+      <div class="desc">QH负责做馒头</div>
+      <div class="recent" id="stat-mantou">加载中...</div>
     </div>
   </div>
 
-  <!-- 打卡区域 -->
+  <!-- 打卡输入 -->
   <div class="card">
     <div class="card-title">
-      <span>📝 今日打卡</span>
-      <span style="font-size: 0.8rem; font-weight: normal; color: #64748b;" id="today-date"></span>
+      <span>📝 我要打卡</span>
+      <button onclick="fetchData(true)" style="width: auto; padding: 4px 10px; font-size: 0.8rem; background: #f1f5f9;">🔄 刷新数据</button>
     </div>
     <div class="form-grid">
       <div>
         <label for="record-type">打卡类型</label>
         <select id="record-type" onchange="handleTypeChange()">
-          <option value="daily">1. 轮次做饭签到 (午+晚或QH半天)</option>
-          <option value="half">2. 半天值日签到 (与QH搭档半天)</option>
+          <option value="daily">1. 轮次做饭签到 (全天或QH半天)</option>
+          <option value="half">2. 半天值日签到 (搭档QH的另外半天)</option>
           <option value="mantou">3. QH做馒头签到 (6天2次)</option>
         </select>
       </div>
       <div>
-        <label for="member-select">打卡人姓名</label>
+        <label for="member-select">打卡人</label>
         <select id="member-select"></select>
       </div>
       <div>
-        <label for="record-date">打卡日期</label>
+        <label for="record-date">值日日期</label>
         <input type="date" id="record-date" />
       </div>
     </div>
-    <button class="btn-primary" onclick="submitRecord()">提交打卡</button>
+    <button class="btn-primary" id="submit-btn" onclick="submitRecord()">提交打卡并同步全员</button>
   </div>
 
-  <!-- 人员与系统设置 -->
+  <!-- 过往打卡明细 -->
   <div class="card">
     <div class="card-title">
-      <span>⚙️ 成员名单设置</span>
-      <button style="width: auto; padding: 4px 8px; font-size: 0.8rem;" onclick="toggleSettings()">展开/折叠设置</button>
-    </div>
-    <div id="settings-box" style="display: none;" class="settings-drawer">
-      <label>成员列表 (用英文逗号隔开，QH请保留)：</label>
-      <input type="text" id="member-input" value="QH, 成员A, 成员B, 成员C, 成员D, 成员E" />
-      <button style="margin-top: 8px; width: auto; padding: 6px 12px; background: #334155; color: #fff;" onclick="saveMembers()">保存人员名单</button>
-    </div>
-  </div>
-
-  <!-- 过往打卡记录 -->
-  <div class="card">
-    <div class="card-title">
-      <span>📋 过往打卡明细</span>
-      <button style="width: auto; padding: 4px 8px; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px;" onclick="clearRecords()">清空记录</button>
+      <span>📋 全员历史打卡记录</span>
+      <span style="font-size: 0.8rem; color: #94a3b8;" id="record-count">共 0 条</span>
     </div>
     <div class="table-responsive">
       <table>
         <thead>
           <tr>
             <th>日期</th>
-            <th>打卡类型</th>
-            <th>签到人</th>
-            <th>时间</th>
+            <th>类型</th>
+            <th>打卡人</th>
+            <th>签到时间</th>
           </tr>
         </thead>
         <tbody id="record-table-body">
-          <!-- 动态加载 -->
+          <tr><td colspan="4" style="text-align:center; color:#94a3b8;">正在加载云端数据...</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- 人员管理设置 -->
+  <div class="card" style="border-style: dashed;">
+    <div class="card-title">
+      <span>⚙️ 成员名单设置</span>
+      <button style="width: auto; padding: 4px 10px; font-size: 0.8rem;" onclick="toggleSettings()">展开/收起</button>
+    </div>
+    <div id="settings-box" style="display: none; font-size: 0.85rem;">
+      <div style="margin-bottom: 12px;">
+        <label>成员名单 (逗号分隔，QH请保留)：</label>
+        <input type="text" id="cfg-members" value="QH, 成员A, 成员B, 成员C, 成员D, 成员E" />
+      </div>
+      <button class="btn-primary" style="background:#334155;" onclick="saveMembers()">保存并同步名单</button>
     </div>
   </div>
 </div>
 
 <script>
-  // 默认人员
+  // 已填入你的 JSONBin 配置，所有人直接开箱即用
+  const DEFAULT_BIN_ID = "6aa8f53effd5d1605308a794";
+  const DEFAULT_API_KEY = "$2a$10$Q/wbx3jQ3S.c4feOYtQ2OO3FmpOYrAD7cHoucZPi08k5KyVCnoTjq";
+
   let members = ["QH", "成员A", "成员B", "成员C", "成员D", "成员E"];
   let records = [];
 
-  // 初始化
+  function getBinId() {
+    return DEFAULT_BIN_ID;
+  }
+  function getApiKey() {
+    return DEFAULT_API_KEY;
+  }
+
   window.onload = function() {
-    // 设置默认日期为今天
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('record-date').value = today;
-    document.getElementById('today-date').innerText = '当前日期: ' + today;
-
-    // 读取本地存储
-    const savedMembers = localStorage.getItem('kitchen_members');
-    if (savedMembers) {
-      members = JSON.parse(savedMembers);
-      document.getElementById('member-input').value = members.join(', ');
-    }
-    const savedRecords = localStorage.getItem('kitchen_records');
-    if (savedRecords) {
-      records = JSON.parse(savedRecords);
-    }
-
-    renderMemberSelect();
-    renderRecords();
-    updateStats();
+    fetchData();
   };
+
+  function updateStatus(state, text) {
+    const dot = document.getElementById('status-dot');
+    dot.className = 'dot ' + state;
+    document.getElementById('status-text').innerText = text;
+  }
+
+  function toggleSettings() {
+    const el = document.getElementById('settings-box');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // 1. 从云端拉取数据 (GET)
+  async function fetchData(manual = false) {
+    const binId = getBinId();
+    const apiKey = getApiKey();
+
+    updateStatus('syncing', '正在同步云端最新打卡...');
+    try {
+      const resp = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+        method: 'GET',
+        headers: {
+          'X-Master-Key': apiKey
+        }
+      });
+      if (!resp.ok) throw new Error('云端读取失败，请检查网络或配置');
+
+      const resJson = await resp.json();
+      const data = resJson.record;
+
+      if (data.members && Array.isArray(data.members)) {
+        members = data.members;
+        document.getElementById('cfg-members').value = members.join(', ');
+      }
+      records = Array.isArray(data.records) ? data.records : [];
+
+      renderMemberSelect();
+      renderRecords();
+      updateStats();
+      updateStatus('online', '已连接云端 (数据全员实时同步)');
+      if (manual) alert('已刷新为最新打卡数据！');
+    } catch (err) {
+      console.error(err);
+      updateStatus('error', '同步失败：' + err.message);
+    }
+  }
+
+  // 2. 提交新打卡到云端 (PUT)
+  async function submitRecord() {
+    const type = document.getElementById('record-type').value;
+    const member = document.getElementById('member-select').value;
+    const date = document.getElementById('record-date').value;
+
+    if (!date) return alert('请选择值日日期');
+
+    const binId = getBinId();
+    const apiKey = getApiKey();
+
+    const newRecord = {
+      id: Date.now(),
+      date: date,
+      type: type,
+      member: member,
+      timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = '正在同步保存中...';
+
+    try {
+      // 提交前先取一次最新数据，防止多人同时操作互相覆盖
+      const getResp = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+        headers: { 'X-Master-Key': apiKey }
+      });
+      let currentRecords = [];
+      let currentMembers = members;
+      if (getResp.ok) {
+        const curData = await getResp.json();
+        currentRecords = curData.record.records || [];
+        if (curData.record.members) currentMembers = curData.record.members;
+      } else {
+        currentRecords = records;
+      }
+
+      // 将最新打卡置顶
+      currentRecords.unshift(newRecord);
+
+      // 上传保存到云端
+      const putResp = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': apiKey
+        },
+        body: JSON.stringify({
+          members: currentMembers,
+          records: currentRecords
+        })
+      });
+
+      if (!putResp.ok) throw new Error('保存到云端失败');
+
+      records = currentRecords;
+      renderRecords();
+      updateStats();
+      updateStatus('online', '已同步全员最新状态');
+      alert(`🎉 ${member} 的【${getTypeName(type)}】打卡成功！所有人均已可见。`);
+    } catch (err) {
+      alert('打卡失败：' + err.message);
+      updateStatus('error', '上传失败');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = '提交打卡并同步全员';
+    }
+  }
+
+  // 3. 修改人员名单同步到云端
+  async function saveMembers() {
+    const memStr = document.getElementById('cfg-members').value.trim();
+    if (!memStr) return alert('人员名单不能为空');
+    const newMembers = memStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+
+    try {
+      const putResp = await fetch(`https://api.jsonbin.io/v3/b/${getBinId()}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': getApiKey()
+        },
+        body: JSON.stringify({
+          members: newMembers,
+          records: records
+        })
+      });
+      if (!putResp.ok) throw new Error('更新名单失败');
+      members = newMembers;
+      renderMemberSelect();
+      alert('人员名单已保存并同步至云端！');
+    } catch (e) {
+      alert('保存名单失败: ' + e.message);
+    }
+  }
+
+  function getTypeName(type) {
+    if (type === 'daily') return '6天轮次做饭';
+    if (type === 'half') return '半天值日';
+    if (type === 'mantou') return 'QH做馒头';
+    return type;
+  }
 
   function renderMemberSelect() {
     const sel = document.getElementById('member-select');
@@ -288,46 +452,10 @@
     }
   }
 
-  function toggleSettings() {
-    const box = document.getElementById('settings-box');
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  }
-
-  function saveMembers() {
-    const val = document.getElementById('member-input').value;
-    const arr = val.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-    if (arr.length === 0) return alert('人员不能为空');
-    members = arr;
-    localStorage.setItem('kitchen_members', JSON.stringify(members));
-    renderMemberSelect();
-    alert('人员名单保存成功！');
-  }
-
-  function submitRecord() {
-    const type = document.getElementById('record-type').value;
-    const member = document.getElementById('member-select').value;
-    const date = document.getElementById('record-date').value;
-
-    if (!date) return alert('请选择打卡日期');
-
-    const newRecord = {
-      id: Date.now(),
-      date: date,
-      type: type,
-      member: member,
-      timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-    };
-
-    records.unshift(newRecord);
-    localStorage.setItem('kitchen_records', JSON.stringify(records));
-    renderRecords();
-    updateStats();
-    alert('打卡成功！');
-  }
-
   function renderRecords() {
     const tbody = document.getElementById('record-table-body');
     tbody.innerHTML = '';
+    document.getElementById('record-count').innerText = `共 ${records.length} 条`;
 
     if (records.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">暂无打卡数据</td></tr>';
@@ -337,7 +465,7 @@
     const badgeMap = {
       daily: '<span class="badge badge-daily">6天轮次</span>',
       half: '<span class="badge badge-half">半天搭档</span>',
-      mantou: '<span class="badge badge-mantou">QH馒头</span>'
+      mantou: '<span class="badge badge-mantou">QH做馒头</span>'
     };
 
     records.forEach(r => {
@@ -355,33 +483,22 @@
   function updateStats() {
     const latestDaily = records.find(r => r.type === 'daily');
     const latestHalf = records.find(r => r.type === 'half');
-    const latestMantou = records.filter(r => r.type === 'mantou');
+    const mantouList = records.filter(r => r.type === 'mantou');
 
     document.getElementById('stat-daily').innerText = latestDaily 
       ? `${latestDaily.member} (${latestDaily.date})` 
-      : '无打卡记录';
+      : '暂无记录';
 
     document.getElementById('stat-half').innerText = latestHalf 
       ? `${latestHalf.member} (${latestHalf.date})` 
-      : '无打卡记录';
+      : '暂无记录';
 
-    // 馒头统计显示最近打卡和本周期次数
-    if (latestMantou.length > 0) {
-      document.getElementById('stat-mantou').innerText = `最近: ${latestMantou[0].date} (已打卡 ${latestMantou.length} 次)`;
+    if (mantouList.length > 0) {
+      document.getElementById('stat-mantou').innerText = `最近: ${mantouList[0].date} (已打卡 ${mantouList.length} 次)`;
     } else {
-      document.getElementById('stat-mantou').innerText = '无打卡记录';
-    }
-  }
-
-  function clearRecords() {
-    if (confirm('确定要清空所有记录吗？')) {
-      records = [];
-      localStorage.removeItem('kitchen_records');
-      renderRecords();
-      updateStats();
+      document.getElementById('stat-mantou').innerText = '暂无记录';
     }
   }
 </script>
-
 </body>
 </html>
