@@ -171,19 +171,36 @@
     }
 
     .cal-wrapper {
-      padding: 12px;
+      padding: 14px;
       background: #f8fafc;
       border-radius: 10px;
       border: 1px solid #cbd5e1;
     }
-    .cal-wrapper h3 {
-      margin: 0 0 10px 0;
+    .cal-report-header {
+      margin: 0 0 12px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #cbd5e1;
       font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 4px;
+      line-height: 1.6;
+    }
+    .report-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .report-content {
+      font-size: 0.88rem;
+      font-weight: normal;
+      color: #334155;
+    }
+    .text-done {
+      color: #16a34a;
+      font-weight: bold;
+      margin: 0 4px;
+    }
+    .text-undone {
+      color: #dc2626;
+      font-weight: bold;
+      margin: 0 4px;
     }
 
     .calendar-grid {
@@ -367,18 +384,18 @@
 
     <!-- 选项卡切换按纽 -->
     <div class="tab-bar">
-      <button class="tab-btn active" id="btn-tab-daily" onclick="switchTab('daily')">1. 一人一天主做 (默认)</button>
+      <button class="tab-btn active" id="btn-tab-daily" onclick="switchTab('daily')">1. 每人一天值日</button>
       <button class="tab-btn" id="btn-tab-half" onclick="switchTab('half')">2. 半天值日搭档</button>
       <button class="tab-btn" id="btn-tab-mantou" onclick="switchTab('mantou')">3. QH做馒头</button>
     </div>
 
-    <!-- 分页 1: 每日主做 (默认显示) -->
+    <!-- 分页 1: 每人一天值日 -->
     <div class="tab-pane active" id="pane-daily">
       <div class="cal-wrapper">
-        <h3 style="color:#2563eb;">
-          <span>🍳 每日主做轮班 (6天一轮，一人一天，QH做半天)</span>
-          <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">不同背景色表示不同轮次</span>
-        </h3>
+        <div class="cal-report-header">
+          <div class="report-title" style="color:#2563eb;">🍳 每人一天值日 (6天一轮，QH半天)</div>
+          <div class="report-content" id="report-daily-text">计算轮次汇报中...</div>
+        </div>
         <div class="calendar-grid" id="grid-daily"></div>
       </div>
     </div>
@@ -386,10 +403,10 @@
     <!-- 分页 2: 半天搭档 -->
     <div class="tab-pane" id="pane-half">
       <div class="cal-wrapper">
-        <h3 style="color:#d97706;">
-          <span>🤝 半天值日搭档 (配合QH做另半天，6人轮流)</span>
-          <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">不同背景色表示不同轮次</span>
-        </h3>
+        <div class="cal-report-header">
+          <div class="report-title" style="color:#d97706;">🤝 半天值日搭档 (配合QH另外半天)</div>
+          <div class="report-content" id="report-half-text">计算轮次汇报中...</div>
+        </div>
         <div class="calendar-grid" id="grid-half"></div>
       </div>
     </div>
@@ -397,10 +414,10 @@
     <!-- 分页 3: QH做馒头 -->
     <div class="tab-pane" id="pane-mantou">
       <div class="cal-wrapper">
-        <h3 style="color:#16a34a;">
-          <span>🥟 QH 做馒头 (每轮6天内做2次)</span>
-          <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">每满2次同色为一轮</span>
-        </h3>
+        <div class="cal-report-header">
+          <div class="report-title" style="color:#16a34a;">🥟 QH 做馒头 (与6天轮次范围对齐)</div>
+          <div class="report-content" id="report-mantou-text">计算轮次汇报中...</div>
+        </div>
         <div class="calendar-grid" id="grid-mantou"></div>
       </div>
     </div>
@@ -521,18 +538,13 @@
   let records = [];
   let recordIdToDelete = null;
 
-  // 日历当前浏览月份
   let currentCalDate = new Date();
 
-  // Tab 分页切换
   function switchTab(type) {
-    // 移除所有激活状态
     ['daily', 'half', 'mantou'].forEach(t => {
       document.getElementById(`btn-tab-${t}`).classList.remove('active');
       document.getElementById(`pane-${t}`).classList.remove('active');
     });
-
-    // 激活选中的分页
     document.getElementById(`btn-tab-${type}`).classList.add('active');
     document.getElementById(`pane-${type}`).classList.add('active');
   }
@@ -583,7 +595,6 @@
     document.getElementById('calendar-current-month').innerText = `${y}年${m}月`;
   }
 
-  // 1. 获取云端数据
   async function fetchData(manual = false) {
     updateStatus('syncing', '正在同步数据...');
     try {
@@ -613,7 +624,6 @@
     }
   }
 
-  // 2. 保存全量数据到云端
   async function pushToCloud(newRecords, newMembers) {
     const resp = await fetch(`https://api.jsonbin.io/v3/b/${DEFAULT_BIN_ID}`, {
       method: 'PUT',
@@ -629,7 +639,6 @@
     if (!resp.ok) throw new Error('云端保存失败');
   }
 
-  // 3. 提交新打卡
   async function submitRecord() {
     const type = document.getElementById('record-type').value;
     const member = document.getElementById('member-select').value;
@@ -664,8 +673,6 @@
       records = currentRecords;
       renderRecords();
       renderAllCalendars();
-
-      // 打卡成功后自动切换到对应的分页，方便直观查看
       switchTab(type);
 
       showToast(`🎉 ${member} 打卡成功！日历已同步更新`);
@@ -677,7 +684,6 @@
     }
   }
 
-  // 4. 删除
   function deleteRecord(id) {
     recordIdToDelete = id;
     document.getElementById('confirm-modal').style.display = 'flex';
@@ -706,7 +712,6 @@
     }
   };
 
-  // 5. 编辑
   function openEditModal(id) {
     const item = records.find(r => r.id === id);
     if (!item) return;
@@ -754,15 +759,117 @@
     }
   }
 
-  // 6. 渲染日历及轮次色彩
+  // 格式化日期显示为 MMDD，如 2026-09-12 -> 0912
+  function formatMMDD(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length >= 3) {
+      return parts[1] + parts[2];
+    }
+    return dateStr;
+  }
+
+  // 核心：日历与动态轮次汇报渲染
   function renderAllCalendars() {
     const dailyMap = buildRecordCycleMap('daily', 6);
     const halfMap = buildRecordCycleMap('half', 6);
-    const mantouMap = buildRecordCycleMap('mantou', 2);
 
+    // 1. 渲染日历网格
     renderCalendarGrid('grid-daily', dailyMap);
     renderCalendarGrid('grid-half', halfMap);
-    renderCalendarGrid('grid-mantou', mantouMap);
+
+    // 2. 汇报：每人一天值日
+    const dailySorted = records
+      .filter(r => r.type === 'daily')
+      .sort((a, b) => (a.date > b.date ? 1 : -1));
+    const dailyRoundInfo = updateMemberReport('report-daily-text', dailySorted, 6);
+
+    // 3. 汇报：半天值日搭档
+    const halfSorted = records
+      .filter(r => r.type === 'half')
+      .sort((a, b) => (a.date > b.date ? 1 : -1));
+    updateMemberReport('report-half-text', halfSorted, 6);
+
+    // 4. 汇报：QH做馒头（与 6 天轮班的日期范围对齐）
+    updateMantouReport(dailyRoundInfo);
+  }
+
+  // 计算每人一天 / 半天的本轮红绿人员汇报
+  function updateMemberReport(elementId, sortedList, cycleSize) {
+    const box = document.getElementById(elementId);
+    if (sortedList.length === 0) {
+      box.innerHTML = '暂无打卡数据，本轮未开始。';
+      return null;
+    }
+
+    const total = sortedList.length;
+    const currentRoundIdx = Math.floor((total - 1) / cycleSize);
+    const roundStartIdx = currentRoundIdx * cycleSize;
+    const currentRoundRecords = sortedList.slice(roundStartIdx);
+
+    const doneMembers = [...new Set(currentRoundRecords.map(r => r.member))];
+    const undoneMembers = members.filter(m => !doneMembers.includes(m));
+
+    const startDate = currentRoundRecords[0].date;
+    const endDate = currentRoundRecords[currentRoundRecords.length - 1].date;
+    const dateRangeStr = `${formatMMDD(startDate)} ~ ${formatMMDD(endDate)}`;
+
+    const doneHtml = doneMembers.length > 0 
+      ? doneMembers.map(m => `<span class="text-done">✓ ${m}</span>`).join('') 
+      : '<span style="color:#94a3b8;">无</span>';
+
+    const undoneHtml = undoneMembers.length > 0 
+      ? undoneMembers.map(m => `<span class="text-undone">✗ ${m}</span>`).join('') 
+      : '<span class="text-done">🎉 本轮全员已完成！</span>';
+
+    box.innerHTML = `
+      <div><strong>【第 ${currentRoundIdx + 1} 轮】</strong> (${dateRangeStr}，已打卡 ${currentRoundRecords.length}/${cycleSize} 天)</div>
+      <div style="margin-top:2px;">
+        已值日：${doneHtml} &nbsp;|&nbsp; 未值日：${undoneHtml}
+      </div>
+    `;
+
+    return {
+      roundIdx: currentRoundIdx + 1,
+      startDate: startDate,
+      endDate: endDate,
+      dateRangeStr: dateRangeStr
+    };
+  }
+
+  // 汇报 QH 做馒头（日期范围和 6 天轮次对齐）
+  function updateMantouReport(dailyRoundInfo) {
+    const box = document.getElementById('report-mantou-text');
+    const mantouRecords = records.filter(r => r.type === 'mantou');
+
+    if (!dailyRoundInfo) {
+      box.innerHTML = '等待 6 天值日轮次启动后对齐计算...';
+      renderCalendarGrid('grid-mantou', buildRecordCycleMap('mantou', 2));
+      return;
+    }
+
+    // 统计在主做轮班日期范围内的做馒头次数 (>= startDate 且 <= endDate)
+    const thisRoundMantou = mantouRecords.filter(r => {
+      return r.date >= dailyRoundInfo.startDate && r.date <= dailyRoundInfo.endDate;
+    });
+
+    const count = thisRoundMantou.length;
+    let statusTip = '';
+    if (count >= 2) {
+      statusTip = `<span class="text-done">✓ 已达标 (完成 ${count}/2 次)</span>`;
+    } else {
+      statusTip = `<span class="text-undone">✗ 尚差 ${2 - count} 次未打卡 (目前 ${count}/2 次)</span>`;
+    }
+
+    box.innerHTML = `
+      <div><strong>【与主做第 ${dailyRoundInfo.roundIdx} 轮对齐】</strong> 范围：<strong>${dailyRoundInfo.dateRangeStr}</strong></div>
+      <div style="margin-top:2px;">
+        QH 馒头签到状态：${statusTip}
+      </div>
+    `;
+
+    // 馒头日历绘制
+    renderCalendarGrid('grid-mantou', buildRecordCycleMap('mantou', 2));
   }
 
   function buildRecordCycleMap(targetType, cycleSize) {
@@ -801,7 +908,6 @@
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
     const todayStr = new Date().toISOString().split('T')[0];
 
     for (let i = 0; i < firstDay; i++) {
@@ -839,7 +945,6 @@
     }
   }
 
-  // 7. 辅助功能
   function renderMemberSelects() {
     const selects = ['member-select', 'edit-member-select'];
     selects.forEach(id => {
@@ -851,7 +956,7 @@
         const opt = document.createElement('option');
         opt.value = m;
         opt.innerText = m;
-        el.appendChild(opt);
+        sel.appendChild(opt);
       });
       if (cur) el.value = cur;
     });
@@ -880,7 +985,7 @@
     }
 
     const badgeMap = {
-      daily: '<span class="badge badge-daily">6天轮次</span>',
+      daily: '<span class="badge badge-daily">每人一天</span>',
       half: '<span class="badge badge-half">半天搭档</span>',
       mantou: '<span class="badge badge-mantou">QH馒头</span>'
     };
