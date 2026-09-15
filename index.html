@@ -356,11 +356,10 @@
     <h1>🍳 厨房值日打卡系统</h1>
     <div class="status-banner">
       <span class="dot" id="status-dot"></span>
-      <span id="status-text">正在同步 GitHub 云端...</span>
+      <span id="status-text">正在同步云端...</span>
     </div>
   </header>
 
-  <!-- 3 种值日日历视图 -->
   <div class="card">
     <div class="card-title">
       <span>📅 值日轮次日历视图</span>
@@ -378,7 +377,6 @@
       <button class="tab-btn" id="btn-tab-mantou" onclick="switchTab('mantou')">3. QH做馒头</button>
     </div>
 
-    <!-- 分页 1: 每人一天值日 -->
     <div class="tab-pane active" id="pane-daily">
       <div class="cal-wrapper">
         <div class="cal-report-header">
@@ -388,7 +386,6 @@
       </div>
     </div>
 
-    <!-- 分页 2: 半天值日搭档 -->
     <div class="tab-pane" id="pane-half">
       <div class="cal-wrapper">
         <div class="cal-report-header">
@@ -398,7 +395,6 @@
       </div>
     </div>
 
-    <!-- 分页 3: QH 做馒头 -->
     <div class="tab-pane" id="pane-mantou">
       <div class="cal-wrapper">
         <div class="cal-report-header">
@@ -409,7 +405,6 @@
     </div>
   </div>
 
-  <!-- 打卡输入 -->
   <div class="card">
     <div class="card-title">
       <span>📝 我要打卡</span>
@@ -436,7 +431,6 @@
     <button class="btn-primary" id="submit-btn" onclick="submitRecord()">提交打卡并同步</button>
   </div>
 
-  <!-- 历史明细表 -->
   <div class="card">
     <div class="card-title">
       <span>📋 全员打卡历史 (支持修改/删除)</span>
@@ -460,7 +454,6 @@
     </div>
   </div>
 
-  <!-- 名单设置 -->
   <div class="card" style="border-style: dashed;">
     <div class="card-title">
       <span>⚙️ 成员名单设置</span>
@@ -476,7 +469,6 @@
   </div>
 </div>
 
-<!-- 修改打卡记录弹窗 -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-card">
     <h3 style="margin-top:0; font-size:1.1rem;">✏️ 修改打卡记录</h3>
@@ -505,7 +497,6 @@
   </div>
 </div>
 
-<!-- 删除确认弹窗 -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal-card">
     <h3 style="margin-top:0; font-size:1.1rem; color:#dc2626;">🗑️ 确认删除</h3>
@@ -518,13 +509,8 @@
 </div>
 
 <script>
-  // GitHub 仓库配置
-  const GH_OWNER = "forjiminigm-collab";
-  const GH_REPO = "duty0915";
-  const GH_ISSUE_NUMBER = 1;
-
-  // 使用 3 段纯字符串拼接已更新的新 Token (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)
-  const GH_TOKEN = "gh" + "p_nt3ESgrWtacchNefi" + "V1u7G1ecbRF0s1te23y";
+  // 已配置为你的专属 Cloudflare Worker 代理网址
+  const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";
 
   let members = ["QH", "XB", "AS", "SZ", "LH", "AL"];
   let records = [];
@@ -588,15 +574,10 @@
   }
 
   async function fetchData(manual = false) {
-    updateStatus('syncing', '正在拉取 GitHub 数据...');
+    updateStatus('syncing', '正在拉取云端数据...');
     try {
-      const resp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/issues/${GH_ISSUE_NUMBER}`, {
-        headers: {
-          'Authorization': `Bearer ${GH_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-      if (!resp.ok) throw new Error(`读取失败 (${resp.status})`);
+      const resp = await fetch(WORKER_API_URL, { method: 'GET' });
+      if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
 
       const issue = await resp.json();
       const data = JSON.parse(issue.body);
@@ -610,12 +591,12 @@
       renderMemberSelects();
       renderRecords();
       renderAllCalendars();
-      updateStatus('online', '已连接 GitHub (数据稳定可用)');
+      updateStatus('online', '已连接云端 (免密稳定同步)');
       if (manual) showToast('已成功刷新至最新数据！', 'info');
     } catch (err) {
       console.error(err);
       updateStatus('error', '同步失败：' + err.message);
-      showToast('拉取失败，请检查网络或配置', 'error');
+      showToast('拉取失败，请检查网络或 Cloudflare 部署', 'error');
     }
   }
 
@@ -625,18 +606,12 @@
       records: newRecords
     }, null, 2);
 
-    const resp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/issues/${GH_ISSUE_NUMBER}`, {
+    const resp = await fetch(WORKER_API_URL, {
       method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${GH_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        body: bodyPayload
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: bodyPayload })
     });
-    if (!resp.ok) throw new Error('写入 GitHub 失败');
+    if (!resp.ok) throw new Error('保存到云端失败');
   }
 
   async function submitRecord() {
@@ -658,12 +633,7 @@
     submitBtn.innerText = '正在提交...';
 
     try {
-      const resp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/issues/${GH_ISSUE_NUMBER}`, {
-        headers: {
-          'Authorization': `Bearer ${GH_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
+      const resp = await fetch(WORKER_API_URL, { method: 'GET' });
       let currentRecords = records;
       if (resp.ok) {
         const issue = await resp.json();
@@ -778,18 +748,14 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 核心轮次与日历渲染 =====================
   function renderAllCalendars() {
-    // 1. 第一分页：每人一天做饭 + 买菜
     const { rounds: mainRounds, recordCycleMap: mainMap, activeCycleDates: mainActiveDates } = buildMainDutyCycles();
     renderCalendarGrid('grid-daily', mainMap, mainActiveDates);
     renderMainDutyReport(mainRounds);
 
-    // 2. 第二分页：半天值日搭档 (买菜动态缩减大周期)
     const { halfMap, halfActiveDates } = renderHalfDutyLogic(mainRounds);
     renderCalendarGrid('grid-half', halfMap, halfActiveDates);
 
-    // 3. 第三分页：QH做馒头 (起始 2026-09-12，每6天一轮)
     const { mantouMap, mantouActiveDates } = renderMantouLogic();
     renderCalendarGrid('grid-mantou', mantouMap, mantouActiveDates);
   }
@@ -800,11 +766,7 @@
       .sort((a, b) => (a.date > b.date ? 1 : -1));
 
     const rounds = [];
-    let curRound = {
-      records: [],
-      doneMembers: new Set(),
-      hasBuy: false
-    };
+    let curRound = { records: [], doneMembers: new Set(), hasBuy: false };
 
     dutyRecords.forEach(r => {
       curRound.records.push(r);
