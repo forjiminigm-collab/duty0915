@@ -183,7 +183,6 @@
       color: #1e293b;
     }
     
-    /* 顺位值日进度的状态颜色 */
     .status-done {
       color: #16a34a;
       font-weight: bold;
@@ -261,7 +260,7 @@
       font-weight: 900;
     }
 
-    /* 方案 A 视觉：顶部粗彩条 + 背景微色阶 */
+    /* 方案 A 视觉规则：顶部粗彩条 + 明显背景色区分 */
     .cycle-round-0 {
       background-color: #f0f7ff !important;
       border-color: #bfdbfe !important;
@@ -297,7 +296,6 @@
       text-overflow: ellipsis;
     }
 
-    /* 全局统一打卡胶囊徽章 */
     .duty-badge {
       font-size: 0.65rem;
       padding: 1px 2px;
@@ -943,7 +941,7 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 严格推演（起点锚定9月18日，本轮9月24日~28日免XB） =====================
+  // ===================== 强制固定前两轮 + 从 9月30日 起动态推演 =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -956,35 +954,29 @@
 
     const roundList = [];
 
-    // 1. 上一轮：2026-09-18 至 2026-09-23（6人全员）
-    const prevStart = "2026-09-18";
-    const prevEnd = "2026-09-23";
+    // 1. 强制第 1 轮：2026-09-18 至 2026-09-23（固定琥珀橙色系 1，6人）
     roundList.push({
       roundIndex: -1,
-      startDate: prevStart,
-      endDate: prevEnd,
-      roster: [...members],
+      startDate: "2026-09-18",
+      endDate: "2026-09-23",
+      roster: ["AL", "LH", "AS", "SZ", "XB", "QH"],
       length: 6,
       altIdx: 1 // 琥珀暖色
     });
 
-    // 2. 本轮：从 baseCycleStart (2026-09-24) 开始
-    // 因上一轮 XB 既做饭又买菜，本轮免除 XB，共 5 人：AL, LH, AS, SZ, QH
-    const round0Roster = members.filter(m => m !== 'XB');
-    const round0Len = round0Roster.length; // 5 天
-    const round0End = addDays(baseCycleStart, round0Len - 1); // 2026-09-28
-
+    // 2. 强制第 2 轮（当前本轮）：2026-09-24 至 2026-09-29（固定蓝色系 0，6天）
+    // 顺位：AL, LH, AS, SZ, QH, AL
     roundList.push({
       roundIndex: 0,
-      startDate: baseCycleStart,
-      endDate: round0End,
-      roster: round0Roster,
-      length: round0Len,
+      startDate: "2026-09-24",
+      endDate: "2026-09-29",
+      roster: ["AL", "LH", "AS", "SZ", "QH", "AL"],
+      length: 6,
       altIdx: 0 // 蓝色系
     });
 
-    // 3. 从 2026-09-29 开始，XB 恢复排班，继续向后推演 35 轮
-    let curStartDate = addDays(round0End, 1); // 2026-09-29
+    // 3. 从 2026-09-30 开始，完全动态计算
+    let curStartDate = "2026-09-30";
     let exemptNextRoundMember = null;
 
     for (let i = 1; i <= 35; i++) {
@@ -1008,7 +1000,7 @@
         }
       });
 
-      const altIdx = (i % 2);
+      const altIdx = (i % 2); // 0 和 1 交替
       roundList.push({
         roundIndex: i,
         startDate: curStartDate,
@@ -1021,6 +1013,7 @@
       curStartDate = addDays(curEndDate, 1);
     }
 
+    // 建立 日期 -> 详细排班数据
     const dateScheduleMap = {};
     roundList.forEach(rnd => {
       rnd.roster.forEach((leader, dIdx) => {
@@ -1033,6 +1026,7 @@
       });
     });
 
+    // 顶班还班追踪
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -1086,7 +1080,6 @@
     renderMantouLogic();
   }
 
-  // 极简顶部汇报：只保留纯净周期 + 合并红绿的值日进度 + 极简还班
   function renderMainGridAndReport(roundList, dateScheduleMap, dutyMapByDate, repayTips) {
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1097,7 +1090,7 @@
 
     const rangeStr = `${formatMMDD(currentRound.startDate)} ~ ${formatMMDD(currentRound.endDate)}`;
 
-    // 生成红绿值日进度链条：AL(绿) -> LH(绿) -> AS(绿) -> SZ(绿) -> QH(红)
+    // 生成红绿值日进度链条
     const progressList = currentRound.roster.map((leader, idx) => {
       const dutyDate = addDays(currentRound.startDate, idx);
       const dayRecords = dutyMapByDate[dutyDate] || [];
@@ -1165,7 +1158,7 @@
       const scheduleInfo = dateScheduleMap[dStr];
       const isToday = dStr === todayStr;
 
-      // 9月18日之前的旧历史不渲染轮班背景色，9月18日起严格采用方案A双色顶条
+      // 9月18日之前彻底留白不显示轮次顶条，9月18日及之后根据强制与推演结果显示色系
       if (dStr >= "2026-09-18" && scheduleInfo) {
         cell.classList.add(`cycle-round-${scheduleInfo.altIdx}`);
       }
