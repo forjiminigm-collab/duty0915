@@ -256,30 +256,36 @@
       font-weight: 900;
     }
 
-    /* 过去日期的双色交替背景 */
-    .past-round-0 {
-      background-color: #f1f5f9 !important;
-      border-color: #cbd5e1 !important;
+    /* ================= 方案 A：顶部粗彩条 + 背景微色阶 ================= */
+    /* 轮次 A：清爽蓝调体系 */
+    .cycle-round-0 {
+      background-color: #f0f7ff !important;
+      border-color: #bfdbfe !important;
+      border-top: 3.5px solid #2563eb !important;
     }
-    .past-round-1 {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-    }
-
-    /* 未到日期的文字颜色交替 */
-    .future-round-0, .future-round-1 {
-      background-color: #ffffff !important;
-    }
-    .future-text-0 {
+    .cycle-round-0 .cal-day-num {
       color: #1e40af !important;
     }
-    .future-text-1 {
-      color: #0f766e !important;
+    .cycle-text-0 {
+      color: #1d4ed8 !important; /* 轮次A未到日期：醒目纯正深蓝字 */
+    }
+
+    /* 轮次 B：温暖琥珀橙调体系 */
+    .cycle-round-1 {
+      background-color: #fffbeb !important;
+      border-color: #fde68a !important;
+      border-top: 3.5px solid #d97706 !important;
+    }
+    .cycle-round-1 .cal-day-num {
+      color: #b45309 !important;
+    }
+    .cycle-text-1 {
+      color: #b45309 !important; /* 轮次B未到日期：醒目暖琥珀字 */
     }
 
     .plan-leader-text {
       font-size: 0.72rem;
-      font-weight: 700;
+      font-weight: 800;
       margin-top: 4px;
       text-align: center;
       line-height: 1.1;
@@ -288,7 +294,7 @@
       text-overflow: ellipsis;
     }
 
-    /* 全局统一打卡胶囊徽章 */
+    /* 全局统一打卡单色徽章 */
     .duty-badge {
       font-size: 0.65rem;
       padding: 1px 2px;
@@ -639,7 +645,6 @@
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('record-date').value = today;
     updateMonthTitle();
-    // 启动前先保证本地初始UI展示，杜绝完全白屏
     updateSettingsView();
     renderMemberSelects();
     renderRecords();
@@ -706,7 +711,6 @@
     document.getElementById('calendar-current-month').innerText = `${y}年${m}月`;
   }
 
-  // 深度容错解析器：能解开多层转义 JSON 字符串或直接对象
   function safeParsePayload(raw) {
     let current = raw;
     for (let i = 0; i < 4; i++) {
@@ -729,8 +733,6 @@
       }
 
       const rawJson = await resp.json();
-      
-      // 判断 GitHub API 返回结构：从 issue.body 解析实际数据
       let data = {};
       if (rawJson && typeof rawJson === 'object' && rawJson.body !== undefined) {
         data = safeParsePayload(rawJson.body);
@@ -761,7 +763,6 @@
     } catch (err) {
       console.error(err);
       updateStatus('error', '同步受阻：' + err.message);
-      // 容错：即使同步失败也把已加载的保底数据刷出来，绝不空屏
       renderRecords();
       renderAllCalendars();
       showToast('拉取云端失败，请检查网络或配置', 'error');
@@ -939,7 +940,7 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 核心推算（XB本轮豁免5人，下轮从9月29日开启） =====================
+  // ===================== 推演算法（方案A色系绑定） =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -967,11 +968,10 @@
       });
     }
 
-    // 2. 向后推演：第 0 轮（即 2026-09-24 ~ 2026-09-28）
-    // 本轮因上一轮 XB 既做饭又买菜，剔除 XB，共 5 人：AL, LH, AS, SZ, QH
+    // 2. 本轮（第 0 轮：2026-09-24 ~ 2026-09-28，XB 减免，5人）
     const round0Roster = members.filter(m => m !== 'XB');
-    const round0Len = round0Roster.length; // 5 天
-    const round0End = addDays(baseCycleStart, round0Len - 1); // 2026-09-28
+    const round0Len = round0Roster.length;
+    const round0End = addDays(baseCycleStart, round0Len - 1);
 
     roundList.push({
       roundIndex: 0,
@@ -979,11 +979,11 @@
       endDate: round0End,
       roster: round0Roster,
       length: round0Len,
-      altIdx: 0
+      altIdx: 0 // 蓝色系
     });
 
-    // 3. 从 2026-09-29 开始，XB 恢复排班，继续向后推演 35 轮
-    let curStartDate = addDays(round0End, 1); // 2026-09-29
+    // 3. 从 2026-09-29 开始向后推演 35 轮（交替色）
+    let curStartDate = addDays(round0End, 1);
     let exemptNextRoundMember = null;
 
     for (let i = 1; i <= 35; i++) {
@@ -1167,15 +1167,11 @@
 
       const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const scheduleInfo = dateScheduleMap[dStr];
-      const isPast = dStr < todayStr;
       const isToday = dStr === todayStr;
 
+      // 方案 A 视觉核心：每个格子根据所在轮次，拥有专属彩条与色调底色
       if (scheduleInfo) {
-        if (isPast || isToday) {
-          cell.classList.add(`past-round-${scheduleInfo.altIdx}`);
-        } else {
-          cell.classList.add(`future-round-${scheduleInfo.altIdx}`);
-        }
+        cell.classList.add(`cycle-round-${scheduleInfo.altIdx}`);
       }
 
       if (isToday) {
@@ -1205,10 +1201,7 @@
       } else {
         if (scheduleInfo && scheduleInfo.leader) {
           const planSpan = document.createElement('div');
-          planSpan.className = 'plan-leader-text';
-          if (!isPast && !isToday) {
-            planSpan.classList.add(`future-text-${scheduleInfo.altIdx}`);
-          }
+          planSpan.className = `plan-leader-text cycle-text-${scheduleInfo.altIdx}`;
           planSpan.innerText = scheduleInfo.leader;
           cell.appendChild(planSpan);
         }
