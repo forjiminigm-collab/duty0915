@@ -256,28 +256,25 @@
       font-weight: 900;
     }
 
-    /* 规则：过去的日期靠背景色区分轮次 */
+    /* 过去日期的双色交替背景 */
     .past-round-0 {
-      background-color: #f1f5f9 !important; /* 浅蓝灰色底 */
+      background-color: #f1f5f9 !important;
       border-color: #cbd5e1 !important;
     }
     .past-round-1 {
-      background-color: #ffffff !important; /* 白色纯净底 */
+      background-color: #ffffff !important;
       border-color: #e2e8f0 !important;
     }
 
-    /* 规则：未来的日期靠文字颜色区分轮次 (背景色统一) */
-    .future-round-0 {
-      background-color: #ffffff !important;
-    }
-    .future-round-1 {
+    /* 未到日期的文字颜色交替 */
+    .future-round-0, .future-round-1 {
       background-color: #ffffff !important;
     }
     .future-text-0 {
-      color: #1e40af !important; /* 轮次A未到日期：深灰蓝字 */
+      color: #1e40af !important;
     }
     .future-text-1 {
-      color: #0f766e !important; /* 轮次B未到日期：青灰字 */
+      color: #0f766e !important;
     }
 
     .plan-leader-text {
@@ -291,7 +288,7 @@
       text-overflow: ellipsis;
     }
 
-    /* 全局打卡徽章：统一深灰蓝经典单色，绝无杂乱多色 */
+    /* 全局统一打卡胶囊徽章 */
     .duty-badge {
       font-size: 0.65rem;
       padding: 1px 2px;
@@ -604,7 +601,7 @@
 </div>
 
 <script>
-  const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";[cite: 4]
+  const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";
 
   let members = ["AL", "LH", "AS", "SZ", "XB", "QH"];
   let baseCycleStart = "2026-09-24";
@@ -642,6 +639,11 @@
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('record-date').value = today;
     updateMonthTitle();
+    // 启动前先保证本地初始UI展示，杜绝完全白屏
+    updateSettingsView();
+    renderMemberSelects();
+    renderRecords();
+    renderAllCalendars();
     fetchData();
   };
 
@@ -652,8 +654,10 @@
   }
 
   function updateSettingsView() {
-    document.getElementById('show-base-date').innerText = baseCycleStart;
-    document.getElementById('show-members-list').innerText = members.join(', ');
+    const elDate = document.getElementById('show-base-date');
+    const elMems = document.getElementById('show-members-list');
+    if (elDate) elDate.innerText = baseCycleStart;
+    if (elMems) elMems.innerText = members.join(', ');
   }
 
   function openConfigModal() {
@@ -702,33 +706,50 @@
     document.getElementById('calendar-current-month').innerText = `${y}年${m}月`;
   }
 
+  // 深度容错解析器：能解开多层转义 JSON 字符串或直接对象
+  function safeParsePayload(raw) {
+    let current = raw;
+    for (let i = 0; i < 4; i++) {
+      if (typeof current !== 'string') break;
+      try {
+        current = JSON.parse(current);
+      } catch (e) {
+        break;
+      }
+    }
+    return current;
+  }
+
   async function fetchData(manual = false) {
     updateStatus('syncing', '正在拉取云端数据...');
     try {
       const resp = await fetch(WORKER_API_URL, { method: 'GET' });
-      if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
-
-      const issue = await resp.json();
-      let data = {};
-      try {
-        data = JSON.parse(issue.body);
-      } catch (err) {
-        console.warn('解析回退', err);
+      if (!resp.ok) {
+        throw new Error(`云端接口异常 (${resp.status})`);
       }
 
-      if (data && data.members && Array.isArray(data.members) && data.members.length > 0) {
-        members = data.members;
-      }
-      if (data && data.baseCycleStart) {
-        baseCycleStart = data.baseCycleStart;
-      }
+      const rawJson = await resp.json();
       
-      if (data && Array.isArray(data.records)) {
-        records = data.records;
-      } else if (Array.isArray(data)) {
-        records = data;
+      // 判断 GitHub API 返回结构：从 issue.body 解析实际数据
+      let data = {};
+      if (rawJson && typeof rawJson === 'object' && rawJson.body !== undefined) {
+        data = safeParsePayload(rawJson.body);
       } else {
-        records = [];
+        data = safeParsePayload(rawJson);
+      }
+
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data.members) && data.members.length > 0) {
+          members = data.members;
+        }
+        if (data.baseCycleStart && typeof data.baseCycleStart === 'string') {
+          baseCycleStart = data.baseCycleStart;
+        }
+        if (Array.isArray(data.records)) {
+          records = data.records;
+        } else if (Array.isArray(data)) {
+          records = data;
+        }
       }
 
       updateSettingsView();
@@ -739,22 +760,25 @@
       if (manual) showToast('已成功刷新至最新数据！', 'info');
     } catch (err) {
       console.error(err);
-      updateStatus('error', '同步失败：' + err.message);
-      showToast('拉取失败，请检查网络或配置', 'error');
+      updateStatus('error', '同步受阻：' + err.message);
+      // 容错：即使同步失败也把已加载的保底数据刷出来，绝不空屏
+      renderRecords();
+      renderAllCalendars();
+      showToast('拉取云端失败，请检查网络或配置', 'error');
     }
   }
 
   async function pushToCloud(newRecords, newMembers, newBaseStart) {
-    const bodyPayload = JSON.stringify({
+    const payloadObj = {
       members: newMembers || members,
       baseCycleStart: newBaseStart || baseCycleStart,
-      records: newRecords
-    }, null, 2);
+      records: newRecords || []
+    };
 
     const resp = await fetch(WORKER_API_URL, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: bodyPayload })
+      body: JSON.stringify({ body: JSON.stringify(payloadObj, null, 2) })
     });
     if (!resp.ok) throw new Error('保存到云端失败');
   }
@@ -780,12 +804,16 @@
     submitBtn.innerText = '正在提交...';
 
     try {
-      const resp = await fetch(WORKER_API_URL, { method: 'GET' });
       let currentRecords = records;
-      if (resp.ok) {
-        const issue = await resp.json();
-        const d = JSON.parse(issue.body);
-        if (d && Array.isArray(d.records)) currentRecords = d.records;
+      try {
+        const resp = await fetch(WORKER_API_URL, { method: 'GET' });
+        if (resp.ok) {
+          const raw = await resp.json();
+          const d = safeParsePayload(raw.body !== undefined ? raw.body : raw);
+          if (d && Array.isArray(d.records)) currentRecords = d.records;
+        }
+      } catch (fetchErr) {
+        console.warn('获取最新记录失败，使用现有数据追加', fetchErr);
       }
 
       currentRecords.unshift(newRecord);
@@ -968,7 +996,6 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
-      // 后续轮次若有人在当轮先做饭后买菜，继续触发下轮豁免
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
@@ -992,7 +1019,6 @@
       curStartDate = addDays(curEndDate, 1);
     }
 
-    // 建立 日期 -> 详细排班数据
     const dateScheduleMap = {};
     roundList.forEach(rnd => {
       rnd.roster.forEach((leader, dIdx) => {
@@ -1005,7 +1031,6 @@
       });
     });
 
-    // 顶班还班追踪
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -1145,9 +1170,6 @@
       const isPast = dStr < todayStr;
       const isToday = dStr === todayStr;
 
-      // 视觉核心规则：
-      // 1. 对于已过去的日期（以及当天），靠背景色区分轮次
-      // 2. 对于还没有来到的日期，背景色统一为白色，文字颜色区分轮次
       if (scheduleInfo) {
         if (isPast || isToday) {
           cell.classList.add(`past-round-${scheduleInfo.altIdx}`);
@@ -1168,7 +1190,6 @@
       const realDuties = dutyMapByDate[dStr] ? dutyMapByDate[dStr].filter(r => r.type === 'daily' || r.type === 'replace' || r.type === 'buy') : [];
 
       if (realDuties && realDuties.length > 0) {
-        // 已打卡：统一经典单色胶囊，文字简洁
         realDuties.forEach(r => {
           const badge = document.createElement('div');
           badge.className = 'duty-badge';
@@ -1182,7 +1203,6 @@
           cell.appendChild(badge);
         });
       } else {
-        // 未打卡预置值：未来日期的字体颜色区分轮次
         if (scheduleInfo && scheduleInfo.leader) {
           const planSpan = document.createElement('div');
           planSpan.className = 'plan-leader-text';
