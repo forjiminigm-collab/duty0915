@@ -113,7 +113,6 @@
       align-items: center;
       gap: 8px;
       font-size: 0.9rem;
-      flex-wrap: wrap;
     }
     .cal-btn {
       background: #f1f5f9;
@@ -252,13 +251,13 @@
       font-size: 0.85rem;
     }
 
-    /* 醒目加深的轮班交替背景色与彩条区分 */
-    .cycle-bg-0 { background-color: #dcfce7 !important; border-color: #86efac !important; border-left: 4px solid #16a34a !important; } /* 鲜明绿 */
-    .cycle-bg-1 { background-color: #dbeafe !important; border-color: #93c5fd !important; border-left: 4px solid #2563eb !important; } /* 鲜明蓝 */
-    .cycle-bg-2 { background-color: #ffedd5 !important; border-color: #fdba74 !important; border-left: 4px solid #ea580c !important; } /* 鲜明橙 */
-    .cycle-bg-3 { background-color: #f3e8ff !important; border-color: #d8b4fe !important; border-left: 4px solid #9333ea !important; } /* 鲜明紫 */
-    .cycle-bg-4 { background-color: #fce7f3 !important; border-color: #f9a8d4 !important; border-left: 4px solid #db2777 !important; } /* 鲜明粉 */
-    .cycle-bg-5 { background-color: #ccfbf1 !important; border-color: #5eead4 !important; border-left: 4px solid #0d9488 !important; } /* 鲜明青 */
+    /* 醒目深色彩条交替轮班背景 */
+    .cycle-bg-0 { background-color: #dcfce7 !important; border-color: #86efac !important; border-left: 4px solid #16a34a !important; }
+    .cycle-bg-1 { background-color: #dbeafe !important; border-color: #93c5fd !important; border-left: 4px solid #2563eb !important; }
+    .cycle-bg-2 { background-color: #ffedd5 !important; border-color: #fdba74 !important; border-left: 4px solid #ea580c !important; }
+    .cycle-bg-3 { background-color: #f3e8ff !important; border-color: #d8b4fe !important; border-left: 4px solid #9333ea !important; }
+    .cycle-bg-4 { background-color: #fce7f3 !important; border-color: #f9a8d4 !important; border-left: 4px solid #db2777 !important; }
+    .cycle-bg-5 { background-color: #ccfbf1 !important; border-color: #5eead4 !important; border-left: 4px solid #0d9488 !important; }
 
     .plan-leader-text {
       font-size: 0.78rem;
@@ -395,11 +394,10 @@
     <div class="card-title">
       <span>📅 值日轮次日历视图</span>
       <div class="cal-controls">
-        <button class="cal-btn" onclick="openConfigModal()" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">⚙️ 设置排班与本轮起点</button>
         <button class="cal-btn" onclick="changeMonth(-1)">◀ 上月</button>
         <strong id="calendar-current-month" style="color:#0f172a;">2026年9月</strong>
         <button class="cal-btn" onclick="changeMonth(1)">下月 ▶</button>
-        <button class="cal-btn" onclick="fetchData(true)" style="background:#f1f5f9;">🔄 刷新</button>
+        <button class="cal-btn" onclick="fetchData(true)" style="background:#e0e7ff; color:#3730a3;">🔄 刷新</button>
       </div>
     </div>
 
@@ -492,6 +490,18 @@
       </table>
     </div>
   </div>
+
+  <!-- 页面最底部：排班顺位与起点设置 -->
+  <div class="card" style="border-style: dashed; background: #fafafa;">
+    <div class="card-title">
+      <span>⚙️ 系统管理与排班参数</span>
+      <button class="btn-primary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openConfigModal()">⚙️ 设置排班与本轮起点</button>
+    </div>
+    <div style="font-size: 0.85rem; color: #64748b; line-height: 1.6;">
+      当前本轮基准开始日：<strong id="show-base-date" style="color:#0f172a;">2026-09-24</strong><br/>
+      当前固定排班顺位：<strong id="show-members-list" style="color:#0f172a;">AL, LH, AS, SZ, XB, QH</strong>
+    </div>
+  </div>
 </div>
 
 <!-- 设置排班与本轮起点 弹窗 -->
@@ -562,7 +572,7 @@
 </div>
 
 <script>
-  const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";[cite: 4]
+  const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";
 
   let members = ["AL", "LH", "AS", "SZ", "XB", "QH"];
   let baseCycleStart = "2026-09-24";
@@ -609,6 +619,11 @@
     document.getElementById('status-text').innerText = text;
   }
 
+  function updateSettingsView() {
+    document.getElementById('show-base-date').innerText = baseCycleStart;
+    document.getElementById('show-members-list').innerText = members.join(', ');
+  }
+
   function openConfigModal() {
     document.getElementById('cfg-base-date').value = baseCycleStart;
     document.getElementById('cfg-members-input').value = members.join(', ');
@@ -631,6 +646,7 @@
       await pushToCloud(records, newMembers, newDate);
       members = newMembers;
       baseCycleStart = newDate;
+      updateSettingsView();
       renderMemberSelects();
       renderAllCalendars();
       closeConfigModal();
@@ -661,16 +677,31 @@
       if (!resp.ok) throw new Error(`请求失败 (${resp.status})`);
 
       const issue = await resp.json();
-      const data = JSON.parse(issue.body);
+      let data = {};
+      try {
+        data = JSON.parse(issue.body);
+      } catch (err) {
+        console.warn('解析 body 格式回退', err);
+      }
 
-      if (data.members && Array.isArray(data.members)) {
+      // 安全读取并保证格式向后兼容
+      if (data && data.members && Array.isArray(data.members) && data.members.length > 0) {
         members = data.members;
       }
-      if (data.baseCycleStart) {
+      if (data && data.baseCycleStart) {
         baseCycleStart = data.baseCycleStart;
       }
-      records = Array.isArray(data.records) ? data.records : [];
+      
+      // 容错处理：确保读取到历史数据
+      if (data && Array.isArray(data.records)) {
+        records = data.records;
+      } else if (Array.isArray(data)) {
+        records = data;
+      } else {
+        records = [];
+      }
 
+      updateSettingsView();
       renderMemberSelects();
       renderRecords();
       renderAllCalendars();
@@ -724,7 +755,7 @@
       if (resp.ok) {
         const issue = await resp.json();
         const d = JSON.parse(issue.body);
-        currentRecords = d.records || [];
+        if (d && Array.isArray(d.records)) currentRecords = d.records;
       }
 
       currentRecords.unshift(newRecord);
@@ -850,7 +881,7 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 核心严格轮班切分推演 =====================
+  // ===================== 严格推演算法（确保23和24日颜色错开） =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -863,9 +894,8 @@
 
     const roundList = [];
 
-    // 1. 从基准日向前倒推 10 轮（严格以 baseCycleStart 为分界点向前推，每轮6天）
-    // 确保 9月24日之前的轮次（如 9月18日~9月23日）拥有独立的轮次颜色
-    for (let p = 10; p >= 1; p--) {
+    // 1. 从基准日向前倒推 15 轮，每轮 6 天连续紧密拼接
+    for (let p = 15; p >= 1; p--) {
       const pStart = addDays(baseCycleStart, -6 * p);
       const pEnd = addDays(pStart, 5);
       const cIdx = ((600 - p) % 6);
@@ -879,11 +909,11 @@
       });
     }
 
-    // 2. 从基准日往后推演 30 轮（本轮从 baseCycleStart 开始，色系索引为 0）
+    // 2. 从基准日往后推演 35 轮（本轮起点严格从 baseCycleStart 开始，色系为 0）
     let curStartDate = baseCycleStart;
     let exemptNextRoundMember = null;
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 35; i++) {
       let curRoster = [...members];
       if (exemptNextRoundMember) {
         curRoster = curRoster.filter(m => m !== exemptNextRoundMember);
@@ -893,7 +923,6 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
-      // 若在当前轮次内“先做饭后买菜”，下轮豁免为5人
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
@@ -916,7 +945,6 @@
       curStartDate = addDays(curEndDate, 1);
     }
 
-    // 日期映射字典
     const dateScheduleMap = {};
     roundList.forEach(rnd => {
       rnd.roster.forEach((leader, dIdx) => {
@@ -929,7 +957,6 @@
       });
     });
 
-    // 统计顶班与还班抵消
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -1271,7 +1298,7 @@
     tbody.innerHTML = '';
     document.getElementById('record-count').innerText = `共 ${records.length} 条`;
 
-    if (records.length === 0) {
+    if (!records || records.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">暂无打卡数据</td></tr>';
       return;
     }
@@ -1288,7 +1315,7 @@
       const tr = document.createElement('tr');
       const personText = r.type === 'replace' ? `<strong>${r.member}</strong> (替 ${r.replacee})` : `<strong>${r.member}</strong>`;
       tr.innerHTML = `
-        <td>${r.date}</td>
+        <td>${r.date || '-'}</td>
         <td>${badgeMap[r.type] || r.type}</td>
         <td>${personText}</td>
         <td style="color:#64748b; font-size:0.8rem;">${r.timestamp || '-'}</td>
