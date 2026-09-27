@@ -170,13 +170,13 @@
     }
     .cal-report-header {
       margin: 0 0 12px 0;
-      padding-bottom: 8px;
+      padding-bottom: 10px;
       border-bottom: 1px dashed #cbd5e1;
       font-size: 0.95rem;
       line-height: 1.6;
     }
     .report-content {
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       color: #1e293b;
     }
     .text-done {
@@ -190,34 +190,50 @@
       margin: 0 4px;
     }
 
+    /* 极简还班提示条 */
+    .repay-tip-bar {
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 3px solid #f59e0b;
+      border-radius: 6px;
+      font-size: 0.86rem;
+      color: #92400e;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
+      gap: 5px;
     }
     .cal-header-cell {
       text-align: center;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: #64748b;
       padding: 4px 0;
     }
     .cal-day-cell {
-      background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      min-height: 60px;
-      padding: 4px;
+      border-radius: 8px;
+      min-height: 65px;
+      padding: 4px 6px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       gap: 2px;
       box-sizing: border-box;
       transition: background-color 0.2s;
+      position: relative;
     }
     .cal-day-cell.empty {
-      background: transparent;
-      border-color: transparent;
+      background: transparent !important;
+      border-color: transparent !important;
     }
     .cal-day-num {
       font-size: 0.75rem;
@@ -226,16 +242,30 @@
       margin-bottom: 2px;
     }
     .cal-today {
-      border-color: #4f46e5;
-      background-color: #fdf4ff;
+      outline: 2px solid #4f46e5;
+      outline-offset: -2px;
     }
     .cal-today .cal-day-num {
       color: #4f46e5;
+      font-weight: bold;
     }
 
-    .cal-in-cycle {
-      background-color: #eef2ff !important;
-      border-color: #c7d2fe !important;
+    /* 周期交替浅色背景 */
+    .cycle-bg-0 { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; }
+    .cycle-bg-1 { background-color: #eff6ff !important; border-color: #bfdbfe !important; }
+    .cycle-bg-2 { background-color: #fff7ed !important; border-color: #fed7aa !important; }
+    .cycle-bg-3 { background-color: #faf5ff !important; border-color: #e9d5ff !important; }
+    .cycle-bg-4 { background-color: #fdf2f8 !important; border-color: #fbcfe8 !important; }
+    .cycle-bg-5 { background-color: #f0fdfa !important; border-color: #99f6e4 !important; }
+
+    /* 未打卡时排班负责人（浅灰色） */
+    .plan-leader-text {
+      font-size: 0.76rem;
+      color: #94a3b8;
+      font-weight: 600;
+      margin-top: 4px;
+      text-align: center;
+      line-height: 1.2;
     }
 
     .duty-badge {
@@ -250,13 +280,11 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
       margin-bottom: 2px;
     }
-    .cycle-c0 { background: #dbeafe; color: #1e40af; border-left: 3px solid #2563eb; }
-    .cycle-c1 { background: #dcfce7; color: #166534; border-left: 3px solid #16a34a; }
-    .cycle-c2 { background: #ffedd5; color: #9a3412; border-left: 3px solid #ea580c; }
-    .cycle-c3 { background: #f3e8ff; color: #6b21a8; border-left: 3px solid #9333ea; }
-    .cycle-c4 { background: #fce7f3; color: #9d174d; border-left: 3px solid #db2777; }
-    .cycle-c5 { background: #ccfbf1; color: #115e59; border-left: 3px solid #0d9488; }
-    .badge-buy { background: #fef08a; color: #854d0e; border-left: 3px solid #eab308; }
+    .badge-act-daily { background: #3b82f6; color: white; }
+    .badge-act-replace { background: #8b5cf6; color: white; }
+    .badge-act-buy { background: #f59e0b; color: white; }
+    .badge-half-tag { background: #0284c7; color: white; }
+    .badge-mantou-tag { background: #10b981; color: white; }
 
     .form-grid {
       display: grid;
@@ -310,10 +338,11 @@
       font-size: 0.75rem;
       font-weight: 600;
     }
-    .badge-daily { background: #e0e7ff; color: #3730a3; }
-    .badge-buy-tag { background: #fef08a; color: #854d0e; }
-    .badge-half { background: #fef3c7; color: #92400e; }
-    .badge-mantou { background: #dcfce7; color: #166534; }
+    .badge-table-daily { background: #e0e7ff; color: #3730a3; }
+    .badge-table-replace { background: #ede9fe; color: #5b21b6; }
+    .badge-table-buy { background: #fef3c7; color: #92400e; }
+    .badge-table-half { background: #e0f2fe; color: #075985; }
+    .badge-table-mantou { background: #dcfce7; color: #166534; }
 
     .btn-action {
       padding: 4px 8px;
@@ -360,6 +389,7 @@
     </div>
   </header>
 
+  <!-- 3 种值日日历视图 -->
   <div class="card">
     <div class="card-title">
       <span>📅 值日轮次日历视图</span>
@@ -372,39 +402,43 @@
     </div>
 
     <div class="tab-bar">
-      <button class="tab-btn active" id="btn-tab-daily" onclick="switchTab('daily')">1. 每人一天值日</button>
+      <button class="tab-btn active" id="btn-tab-daily" onclick="switchTab('daily')">1. 轮流值日做饭</button>
       <button class="tab-btn" id="btn-tab-half" onclick="switchTab('half')">2. 半天值日搭档</button>
       <button class="tab-btn" id="btn-tab-mantou" onclick="switchTab('mantou')">3. QH做馒头</button>
     </div>
 
+    <!-- 分页 1: 轮流做饭 -->
     <div class="tab-pane active" id="pane-daily">
       <div class="cal-wrapper">
         <div class="cal-report-header">
-          <div class="report-content" id="report-daily-text">计算轮次汇报中...</div>
+          <div class="report-content" id="report-daily-text">计算轮次及值日进度中...</div>
         </div>
         <div class="calendar-grid" id="grid-daily"></div>
       </div>
     </div>
 
+    <!-- 分页 2: 半天值日搭档 -->
     <div class="tab-pane" id="pane-half">
       <div class="cal-wrapper">
         <div class="cal-report-header">
-          <div class="report-content" id="report-half-text">计算轮次汇报中...</div>
+          <div class="report-content" id="report-half-text">计算半天大周期中...</div>
         </div>
         <div class="calendar-grid" id="grid-half"></div>
       </div>
     </div>
 
+    <!-- 分页 3: QH 做馒头 -->
     <div class="tab-pane" id="pane-mantou">
       <div class="cal-wrapper">
         <div class="cal-report-header">
-          <div class="report-content" id="report-mantou-text">计算轮次汇报中...</div>
+          <div class="report-content" id="report-mantou-text">计算馒头周期中...</div>
         </div>
         <div class="calendar-grid" id="grid-mantou"></div>
       </div>
     </div>
   </div>
 
+  <!-- 打卡输入 -->
   <div class="card">
     <div class="card-title">
       <span>📝 我要打卡</span>
@@ -412,16 +446,21 @@
     <div class="form-grid">
       <div>
         <label for="record-type">打卡类型</label>
-        <select id="record-type" onchange="handleTypeChange('record-type', 'member-select')">
-          <option value="daily">1. 每人一天做饭 (全天/QH半天)</option>
-          <option value="buy">2. 买菜 (算本作已值日，并与做饭重叠)</option>
-          <option value="half">3. 半天值日签到 (搭档QH的另外半天)</option>
-          <option value="mantou">4. QH做馒头签到 (6天2次)</option>
+        <select id="record-type" onchange="handleTypeChange('record-type', 'member-select', 'replace-box')">
+          <option value="daily">1. 轮班值日做饭 (本人按排班做饭)</option>
+          <option value="replace">2. 顶替值日打卡 (替别人做饭)</option>
+          <option value="buy">3. 买菜 (若本轮已做饭，下轮减免1次)</option>
+          <option value="half">4. 半天值日签到 (搭档QH另外半天)</option>
+          <option value="mantou">5. QH做馒头签到 (6天2次)</option>
         </select>
       </div>
       <div>
-        <label for="member-select">打卡人</label>
+        <label for="member-select">实际打卡人 (干活的人)</label>
         <select id="member-select"></select>
+      </div>
+      <div id="replace-box" style="display: none;">
+        <label for="replacee-select" style="color: #6366f1; font-weight: bold;">原排班负责人 (被替的人)</label>
+        <select id="replacee-select"></select>
       </div>
       <div>
         <label for="record-date">值日日期</label>
@@ -431,6 +470,7 @@
     <button class="btn-primary" id="submit-btn" onclick="submitRecord()">提交打卡并同步</button>
   </div>
 
+  <!-- 历史明细表 -->
   <div class="card">
     <div class="card-title">
       <span>📋 全员打卡历史 (支持修改/删除)</span>
@@ -442,7 +482,7 @@
           <tr>
             <th>日期</th>
             <th>打卡类型</th>
-            <th>打卡人</th>
+            <th>打卡人 / 责任人</th>
             <th>打卡时间</th>
             <th>操作</th>
           </tr>
@@ -454,21 +494,23 @@
     </div>
   </div>
 
+  <!-- 名单设置 -->
   <div class="card" style="border-style: dashed;">
     <div class="card-title">
-      <span>⚙️ 成员名单设置</span>
+      <span>⚙️ 基础轮班顺位配置</span>
       <button style="width: auto; padding: 4px 10px; font-size: 0.8rem;" onclick="toggleSettings()">展开/收起</button>
     </div>
     <div id="settings-box" style="display: none; font-size: 0.85rem;">
       <div style="margin-bottom: 12px;">
-        <label>成员名单 (逗号分隔，QH请保留)：</label>
-        <input type="text" id="cfg-members" value="QH, XB, AS, SZ, LH, AL" />
+        <label>固定排班顺位 (逗号分隔)：</label>
+        <input type="text" id="cfg-members" value="AL, LH, AS, SZ, XB, QH" />
       </div>
-      <button class="btn-primary" style="background:#334155;" onclick="saveMembers()">保存并同步名单</button>
+      <button class="btn-primary" style="background:#334155;" onclick="saveMembers()">保存并更新排班</button>
     </div>
   </div>
 </div>
 
+<!-- 修改打卡记录弹窗 -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-card">
     <h3 style="margin-top:0; font-size:1.1rem;">✏️ 修改打卡记录</h3>
@@ -479,16 +521,21 @@
     </div>
     <div style="margin-bottom: 12px;">
       <label>打卡类型</label>
-      <select id="edit-record-type" onchange="handleTypeChange('edit-record-type', 'edit-member-select')">
-        <option value="daily">1. 每人一天做饭 (全天/QH半天)</option>
-        <option value="buy">2. 买菜 (算本作已值日，并与做饭重叠)</option>
-        <option value="half">3. 半天值日签到 (搭档QH另外半天)</option>
-        <option value="mantou">4. QH做馒头签到 (6天2次)</option>
+      <select id="edit-record-type" onchange="handleTypeChange('edit-record-type', 'edit-member-select', 'edit-replace-box')">
+        <option value="daily">1. 轮班值日做饭 (本人按排班做饭)</option>
+        <option value="replace">2. 顶替值日打卡 (替别人做饭)</option>
+        <option value="buy">3. 买菜 (若本轮已做饭，下轮减免1次)</option>
+        <option value="half">4. 半天值日签到 (搭档QH另外半天)</option>
+        <option value="mantou">5. QH做馒头签到 (6天2次)</option>
       </select>
     </div>
-    <div style="margin-bottom: 18px;">
-      <label>打卡人</label>
+    <div style="margin-bottom: 12px;">
+      <label>实际打卡人 (干活的人)</label>
       <select id="edit-member-select"></select>
+    </div>
+    <div id="edit-replace-box" style="margin-bottom: 18px; display: none;">
+      <label style="color: #6366f1; font-weight: bold;">原排班负责人 (被替的人)</label>
+      <select id="edit-replacee-select"></select>
     </div>
     <div style="display: flex; gap: 8px;">
       <button class="btn-primary" onclick="saveRecordEdit()">保存修改</button>
@@ -497,10 +544,11 @@
   </div>
 </div>
 
+<!-- 删除确认弹窗 -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal-card">
     <h3 style="margin-top:0; font-size:1.1rem; color:#dc2626;">🗑️ 确认删除</h3>
-    <p style="font-size:0.9rem; color:#64748b; margin: 10px 0 20px 0;">确定要永久删除这条打卡记录吗？删除后其他人也将无法查看。</p>
+    <p style="font-size:0.9rem; color:#64748b; margin: 10px 0 20px 0;">确定要永久删除这条打卡记录吗？删除后排班系统将自动重新计算。</p>
     <div style="display: flex; gap: 8px;">
       <button class="btn-primary" style="background:#dc2626;" id="confirm-del-btn">确认删除</button>
       <button style="background: #e2e8f0; color: #475569;" onclick="closeConfirmModal()">取消</button>
@@ -509,20 +557,24 @@
 </div>
 
 <script>
-  // 已配置为你的专属 Cloudflare Worker 代理网址
+  // Cloudflare Worker 代理网址[cite: 4]
   const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";
 
-  let members = ["QH", "XB", "AS", "SZ", "LH", "AL"];
+  // 基准轮班顺位：AL, LH, AS, SZ, XB, QH
+  let members = ["AL", "LH", "AS", "SZ", "XB", "QH"];
   let records = [];
   let recordIdToDelete = null;
   let currentCalDate = new Date();
+
+  // 本轮基准起始锚点：2026年9月24日 AL 开始
+  const BASE_CYCLE_START = "2026-09-24";
 
   function switchTab(type) {
     ['daily', 'half', 'mantou'].forEach(t => {
       document.getElementById(`btn-tab-${t}`).classList.remove('active');
       document.getElementById(`pane-${t}`).classList.remove('active');
     });
-    const target = (type === 'buy') ? 'daily' : type;
+    const target = (type === 'buy' || type === 'replace') ? 'daily' : type;
     document.getElementById(`btn-tab-${target}`).classList.add('active');
     document.getElementById(`pane-${target}`).classList.add('active');
   }
@@ -596,7 +648,7 @@
     } catch (err) {
       console.error(err);
       updateStatus('error', '同步失败：' + err.message);
-      showToast('拉取失败，请检查网络或 Cloudflare 部署', 'error');
+      showToast('拉取失败，请检查网络或配置', 'error');
     }
   }
 
@@ -618,6 +670,7 @@
     const type = document.getElementById('record-type').value;
     const member = document.getElementById('member-select').value;
     const date = document.getElementById('record-date').value;
+    const replacee = document.getElementById('replacee-select').value;
     if (!date) return showToast('请先选择打卡日期', 'error');
 
     const newRecord = {
@@ -625,6 +678,7 @@
       date: date,
       type: type,
       member: member,
+      replacee: type === 'replace' ? replacee : null,
       timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -649,7 +703,8 @@
       renderAllCalendars();
       switchTab(type);
 
-      showToast(`🎉 ${member} 打卡成功！日历已同步更新`);
+      const msg = type === 'replace' ? `🎉 ${member} 替 ${replacee} 打卡成功！` : `🎉 ${member} 打卡成功！`;
+      showToast(msg);
     } catch (e) {
       showToast('打卡提交失败: ' + e.message, 'error');
     } finally {
@@ -695,7 +750,10 @@
     document.getElementById('edit-record-type').value = item.type;
     renderMemberSelects();
     document.getElementById('edit-member-select').value = item.member;
-    handleTypeChange('edit-record-type', 'edit-member-select');
+    if (item.replacee) {
+      document.getElementById('edit-replacee-select').value = item.replacee;
+    }
+    handleTypeChange('edit-record-type', 'edit-member-select', 'edit-replace-box');
 
     document.getElementById('edit-modal').style.display = 'flex';
   }
@@ -709,13 +767,20 @@
     const date = document.getElementById('edit-record-date').value;
     const type = document.getElementById('edit-record-type').value;
     const member = document.getElementById('edit-member-select').value;
+    const replacee = document.getElementById('edit-replacee-select').value;
     if (!date) return showToast('日期不能为空', 'error');
 
     try {
       updateStatus('syncing', '正在保存修改...');
       const newRecords = records.map(r => {
         if (r.id === id) {
-          return { ...r, date, type, member };
+          return {
+            ...r,
+            date,
+            type,
+            member,
+            replacee: type === 'replace' ? replacee : null
+          };
         }
         return r;
       });
@@ -742,229 +807,213 @@
     return dateStr;
   }
 
+  function formatMMDDChinese(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length >= 3) {
+      return `${parts[1]}月${parts[2]}日`;
+    }
+    return dateStr;
+  }
+
   function addDays(dateStr, n) {
     const d = new Date(dateStr + 'T00:00:00');
     d.setDate(d.getDate() + n);
     return d.toISOString().split('T')[0];
   }
 
-  function renderAllCalendars() {
-    const { rounds: mainRounds, recordCycleMap: mainMap, activeCycleDates: mainActiveDates } = buildMainDutyCycles();
-    renderCalendarGrid('grid-daily', mainMap, mainActiveDates);
-    renderMainDutyReport(mainRounds);
+  // ===================== 核心推算与顶班还班追踪 =====================
+  function calculateDutyTimeline() {
+    const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
+    const buyRecords = records.filter(r => r.type === 'buy');
 
-    const { halfMap, halfActiveDates } = renderHalfDutyLogic(mainRounds);
-    renderCalendarGrid('grid-half', halfMap, halfActiveDates);
-
-    const { mantouMap, mantouActiveDates } = renderMantouLogic();
-    renderCalendarGrid('grid-mantou', mantouMap, mantouActiveDates);
-  }
-
-  function buildMainDutyCycles() {
-    const dutyRecords = records
-      .filter(r => r.type === 'daily' || r.type === 'buy')
-      .sort((a, b) => (a.date > b.date ? 1 : -1));
-
-    const rounds = [];
-    let curRound = { records: [], doneMembers: new Set(), hasBuy: false };
-
-    dutyRecords.forEach(r => {
-      curRound.records.push(r);
-      curRound.doneMembers.add(r.member);
-      if (r.type === 'buy') curRound.hasBuy = true;
-
-      if (curRound.doneMembers.size >= members.length) {
-        rounds.push(curRound);
-        curRound = { records: [], doneMembers: new Set(), hasBuy: false };
-      }
+    const dutyMapByDate = {};
+    records.forEach(r => {
+      if (!dutyMapByDate[r.date]) dutyMapByDate[r.date] = [];
+      dutyMapByDate[r.date].push(r);
     });
 
-    rounds.push(curRound);
+    const roundList = [];
+    let curStartDate = BASE_CYCLE_START;
+    let exemptNextRoundMember = null;
 
-    const recordCycleMap = {};
-    let activeCycleDates = new Set();
-
-    rounds.forEach((round, rIdx) => {
-      const colorIdx = rIdx % 6;
-      round.records.forEach(r => {
-        if (!recordCycleMap[r.date]) recordCycleMap[r.date] = [];
-        const isBuy = r.type === 'buy';
-        recordCycleMap[r.date].push({
-          member: r.member,
-          label: isBuy ? `${r.member}(买菜)` : r.member,
-          colorClass: isBuy ? 'badge-buy' : `cycle-c${colorIdx}`
-        });
+    // 前推 5 轮
+    for (let p = 5; p >= 1; p--) {
+      const pStart = addDays(BASE_CYCLE_START, -6 * p);
+      roundList.push({
+        roundIndex: -p,
+        startDate: pStart,
+        endDate: addDays(pStart, 5),
+        roster: [...members],
+        length: 6,
+        colorIndex: ((p % 6) + 6) % 6
       });
-    });
+    }
 
-    const latestRound = rounds[rounds.length - 1];
-    if (latestRound && latestRound.records.length > 0) {
-      const startDate = latestRound.records[0].date;
-      const cycleDays = latestRound.hasBuy ? 5 : 6;
-      for (let i = 0; i < cycleDays; i++) {
-        activeCycleDates.add(addDays(startDate, i));
+    // 后推 30 轮
+    for (let i = 0; i < 30; i++) {
+      let curRoster = [...members];
+      if (exemptNextRoundMember) {
+        curRoster = curRoster.filter(m => m !== exemptNextRoundMember);
+        exemptNextRoundMember = null;
       }
-    }
 
-    return { rounds, recordCycleMap, activeCycleDates };
-  }
+      const cycleDays = curRoster.length;
+      const curEndDate = addDays(curStartDate, cycleDays - 1);
 
-  function renderMainDutyReport(rounds) {
-    const box = document.getElementById('report-daily-text');
-    const latestRound = rounds[rounds.length - 1];
-
-    if (!latestRound || latestRound.records.length === 0) {
-      box.innerHTML = '【本轮】暂无打卡数据。';
-      return;
-    }
-
-    const startDate = latestRound.records[0].date;
-    const cycleDays = latestRound.hasBuy ? 5 : 6;
-    const endDate = addDays(startDate, cycleDays - 1);
-    const dateRangeStr = `${formatMMDD(startDate)} ~ ${formatMMDD(endDate)}`;
-
-    const doneArr = [...latestRound.doneMembers];
-    const undoneArr = members.filter(m => !doneArr.includes(m));
-
-    const doneHtml = doneArr.length > 0 
-      ? doneArr.map(m => `<span class="text-done">✓ ${m}</span>`).join('') 
-      : '<span style="color:#94a3b8;">无</span>';
-
-    const undoneHtml = undoneArr.length > 0 
-      ? undoneArr.map(m => `<span class="text-undone">✗ ${m}</span>`).join('') 
-      : '<span class="text-done">🎉 本轮全员已完成！</span>';
-
-    box.innerHTML = `
-      <div><strong>【本轮】</strong> (${dateRangeStr}，共 ${cycleDays} 天周期${latestRound.hasBuy ? '，含买菜' : ''})</div>
-      <div style="margin-top:2px;">
-        已值日：${doneHtml} &nbsp;|&nbsp; 未值日：${undoneHtml}
-      </div>
-    `;
-  }
-
-  function renderHalfDutyLogic(mainRounds) {
-    const halfRecords = records
-      .filter(r => r.type === 'half')
-      .sort((a, b) => (a.date > b.date ? 1 : -1));
-
-    const baseStart = "2026-09-02";
-    const today = new Date().toISOString().split('T')[0];
-
-    let buyCountInCycle = 0;
-    if (mainRounds && mainRounds.length > 0) {
-      mainRounds.forEach(round => {
-        if (round.hasBuy && round.records.length > 0) {
-          const rDate = round.records[0].date;
-          if (rDate >= baseStart) {
-            buyCountInCycle++;
-          }
+      // 仅当“先做饭后买菜”时，下轮减为5人
+      const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
+      roundBuys.forEach(br => {
+        const hasCookedBefore = cookingRecords.some(cr => 
+          cr.member === br.member && cr.date >= curStartDate && cr.date <= br.date
+        );
+        if (hasCookedBefore) {
+          exemptNextRoundMember = br.member;
         }
       });
+
+      roundList.push({
+        roundIndex: i,
+        startDate: curStartDate,
+        endDate: curEndDate,
+        roster: curRoster,
+        length: cycleDays,
+        colorIndex: (i % 6)
+      });
+
+      curStartDate = addDays(curEndDate, 1);
     }
 
-    const adjustedCycleLength = Math.max(30, 36 - buyCountInCycle);
-
-    let curStart = baseStart;
-    while (addDays(curStart, adjustedCycleLength - 1) < today) {
-      curStart = addDays(curStart, adjustedCycleLength);
-    }
-    const curEnd = addDays(curStart, adjustedCycleLength - 1);
-
-    const halfActiveDates = new Set();
-    for (let i = 0; i < adjustedCycleLength; i++) {
-      halfActiveDates.add(addDays(curStart, i));
-    }
-
-    const thisRoundRecords = halfRecords.filter(r => r.date >= curStart && r.date <= curEnd);
-    const doneMembers = [...new Set(thisRoundRecords.map(r => r.member))];
-    const undoneMembers = members.filter(m => !doneMembers.includes(m));
-
-    const dateRangeStr = `${formatMMDD(curStart)} ~ ${formatMMDD(curEnd)}`;
-
-    const doneHtml = doneMembers.length > 0 
-      ? doneMembers.map(m => `<span class="text-done">✓ ${m}</span>`).join('') 
-      : '<span style="color:#94a3b8;">无</span>';
-
-    const undoneHtml = undoneMembers.length > 0 
-      ? undoneMembers.map(m => `<span class="text-undone">✗ ${m}</span>`).join('') 
-      : '<span class="text-done">🎉 本轮全员已完成！</span>';
-
-    const buyTip = buyCountInCycle > 0 ? `，已因买菜核减 ${buyCountInCycle} 天` : '';
-
-    document.getElementById('report-half-text').innerHTML = `
-      <div><strong>【本轮】</strong> (${dateRangeStr}，共 ${adjustedCycleLength} 天大周期${buyTip})</div>
-      <div style="margin-top:2px;">
-        已值日：${doneHtml} &nbsp;|&nbsp; 未值日：${undoneHtml}
-      </div>
-    `;
-
-    const halfMap = {};
-    halfRecords.forEach((r, idx) => {
-      const colorIdx = Math.floor(idx / 6) % 6;
-      if (!halfMap[r.date]) halfMap[r.date] = [];
-      halfMap[r.date].push({
-        member: r.member,
-        label: r.member,
-        colorClass: `cycle-c${colorIdx}`
+    const dateScheduleMap = {};
+    roundList.forEach(rnd => {
+      rnd.roster.forEach((leader, dIdx) => {
+        const dStr = addDays(rnd.startDate, dIdx);
+        dateScheduleMap[dStr] = {
+          round: rnd,
+          leader: leader,
+          colorClass: `cycle-bg-${rnd.colorIndex}`
+        };
       });
     });
 
-    return { halfMap, halfActiveDates };
-  }
-
-  function renderMantouLogic() {
-    const mantouRecords = records
-      .filter(r => r.type === 'mantou')
+    // 统计顶班与还班抵消
+    // A 替 B 做饭 -> 产生 B 欠 A 一次值日
+    // 之后若 B 替 A 做饭，或者在 A 负责的那天 B 实际做了饭打卡 -> 两清抵消
+    const replaceEvents = records
+      .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
 
-    const baseStart = "2026-09-12";
-    const cycleLength = 6;
+    // 计算净欠班对
+    const debtCounts = {}; // key: "欠班人(被替者)->债权人(替班者)"
+    replaceEvents.forEach(r => {
+      const helper = r.member; // 帮做的人
+      const target = r.replacee; // 欠人情的人
+      const debtKey = `${target}->${helper}`;
+      const reverseKey = `${helper}->${target}`;
 
-    const today = new Date().toISOString().split('T')[0];
-    let curStart = baseStart;
-    while (addDays(curStart, cycleLength - 1) < today) {
-      curStart = addDays(curStart, cycleLength);
-    }
-    const curEnd = addDays(curStart, cycleLength - 1);
-
-    const mantouActiveDates = new Set();
-    for (let i = 0; i < cycleLength; i++) {
-      mantouActiveDates.add(addDays(curStart, i));
-    }
-
-    const thisRoundRecords = mantouRecords.filter(r => r.date >= curStart && r.date <= curEnd);
-    const count = thisRoundRecords.length;
-
-    let statusTip = '';
-    if (count >= 2) {
-      statusTip = `<span class="text-done">✓ 已达标 (完成 ${count}/2 次)</span>`;
-    } else {
-      statusTip = `<span class="text-undone">✗ 尚差 ${2 - count} 次未打卡 (目前 ${count}/2 次)</span>`;
-    }
-
-    const dateRangeStr = `${formatMMDD(curStart)} ~ ${formatMMDD(curEnd)}`;
-    document.getElementById('report-mantou-text').innerHTML = `
-      <div><strong>【本轮】</strong> (${dateRangeStr}，共 6 天周期)</div>
-      <div style="margin-top:2px;">
-        QH 馒头签到状态：${statusTip}
-      </div>
-    `;
-
-    const mantouMap = {};
-    mantouRecords.forEach((r, idx) => {
-      const colorIdx = Math.floor(idx / 2) % 6;
-      if (!mantouMap[r.date]) mantouMap[r.date] = [];
-      mantouMap[r.date].push({
-        member: r.member,
-        label: r.member,
-        colorClass: `cycle-c${colorIdx}`
-      });
+      if (debtCounts[reverseKey] && debtCounts[reverseKey] > 0) {
+        debtCounts[reverseKey]--;
+      } else {
+        debtCounts[debtKey] = (debtCounts[debtKey] || 0) + 1;
+      }
     });
 
-    return { mantouMap, mantouActiveDates };
+    // 还班预告：找到将来的哪一天应由谁还谁
+    const repayTips = [];
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    Object.entries(debtCounts).forEach(([pair, count]) => {
+      if (count <= 0) return;
+      const [debtor, creditor] = pair.split('->');
+
+      // 寻找未来排班负责人是 creditor（债权人），且尚未打卡的日期
+      let foundDate = null;
+      for (let offset = 0; offset < 60; offset++) {
+        const checkD = addDays(todayStr, offset);
+        const sched = dateScheduleMap[checkD];
+        if (sched && sched.leader === creditor) {
+          const duties = dutyMapByDate[checkD] || [];
+          if (duties.length === 0) {
+            foundDate = checkD;
+            break;
+          }
+        }
+      }
+
+      const dateText = foundDate ? formatMMDDChinese(foundDate) : '近期';
+      repayTips.push(`📌 <strong>还班提醒</strong>：<strong>${dateText} ${debtor} 还 ${creditor} 的替班</strong>`);
+    });
+
+    return { roundList, dateScheduleMap, dutyMapByDate, repayTips };
   }
 
-  function renderCalendarGrid(containerId, dateMap, activeDates) {
+  function renderAllCalendars() {
+    const { roundList, dateScheduleMap, dutyMapByDate, repayTips } = calculateDutyTimeline();
+
+    // 1. 渲染轮流做饭视图
+    renderMainGridAndReport(roundList, dateScheduleMap, dutyMapByDate, repayTips);
+
+    // 2. 渲染半天搭档
+    renderHalfDutyLogic();
+
+    // 3. 渲染做馒头
+    renderMantouLogic();
+  }
+
+  function renderMainGridAndReport(roundList, dateScheduleMap, dutyMapByDate, repayTips) {
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    let currentRound = roundList.find(r => todayStr >= r.startDate && todayStr <= r.endDate);
+    if (!currentRound) {
+      currentRound = roundList.find(r => r.roundIndex === 0) || roundList[0];
+    }
+
+    const rangeStr = `${formatMMDD(currentRound.startDate)} ~ ${formatMMDD(currentRound.endDate)}`;
+
+    // 统计本轮每位排班负责人的完成情况（绿 / 红）
+    const doneHtmlList = [];
+    const undoneHtmlList = [];
+
+    currentRound.roster.forEach((leader, idx) => {
+      const dutyDate = addDays(currentRound.startDate, idx);
+      const dayRecords = dutyMapByDate[dutyDate] || [];
+      const cookRecord = dayRecords.find(r => r.type === 'daily' || r.type === 'replace');
+
+      if (cookRecord) {
+        if (cookRecord.type === 'replace') {
+          doneHtmlList.push(`<span class="text-done">✓ ${leader} (${cookRecord.member}替)</span>`);
+        } else {
+          doneHtmlList.push(`<span class="text-done">✓ ${leader}</span>`);
+        }
+      } else {
+        undoneHtmlList.push(`<span class="text-undone">✗ ${leader}</span>`);
+      }
+    });
+
+    const doneDisplay = doneHtmlList.length > 0 ? doneHtmlList.join(' ') : '<span style="color:#94a3b8;">无</span>';
+    const undoneDisplay = undoneHtmlList.length > 0 ? undoneHtmlList.join(' ') : '<span class="text-done">🎉 本轮已全员完成！</span>';
+
+    // 拼接简洁的还班提醒条
+    let repayTipHtml = '';
+    if (repayTips && repayTips.length > 0) {
+      repayTipHtml = `<div class="repay-tip-bar">${repayTips.join('<span style="color:#cbd5e1;">|</span>')}</div>`;
+    }
+
+    const reportBox = document.getElementById('report-daily-text');
+    reportBox.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <div><strong>【本轮周期】</strong> <span style="color:#4f46e5; font-weight:bold;">${rangeStr}</span> (共 ${currentRound.length} 天)</div>
+      </div>
+      <div style="margin-top:4px;">
+        <strong>值日进度</strong>：${doneDisplay} &nbsp;|&nbsp; ${undoneDisplay}
+      </div>
+      ${repayTipHtml}
+    `;
+
+    renderCalendarGrid('grid-daily', dateScheduleMap, dutyMapByDate);
+  }
+
+  function renderCalendarGrid(containerId, dateScheduleMap, dutyMapByDate) {
     const grid = document.getElementById(containerId);
     grid.innerHTML = '';
 
@@ -994,9 +1043,10 @@
       cell.className = 'cal-day-cell';
 
       const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      
-      if (activeDates && activeDates.has(dStr)) {
-        cell.classList.add('cal-in-cycle');
+      const scheduleInfo = dateScheduleMap[dStr];
+
+      if (scheduleInfo && scheduleInfo.colorClass) {
+        cell.classList.add(scheduleInfo.colorClass);
       }
 
       if (dStr === todayStr) {
@@ -1008,22 +1058,157 @@
       numSpan.innerText = day;
       cell.appendChild(numSpan);
 
-      const dutyList = dateMap[dStr];
-      if (dutyList && dutyList.length > 0) {
-        dutyList.forEach(item => {
+      const realDuties = dutyMapByDate[dStr] ? dutyMapByDate[dStr].filter(r => r.type === 'daily' || r.type === 'replace' || r.type === 'buy') : [];
+
+      if (realDuties && realDuties.length > 0) {
+        realDuties.forEach(r => {
           const badge = document.createElement('div');
-          badge.className = `duty-badge ${item.colorClass}`;
-          badge.innerText = item.label || item.member;
+          if (r.type === 'buy') {
+            badge.className = 'duty-badge badge-act-buy';
+            badge.innerText = `${r.member}(买菜)`;
+          } else if (r.type === 'replace') {
+            badge.className = 'duty-badge badge-act-replace';
+            badge.innerText = `${r.member}(替${r.replacee})`;
+          } else {
+            badge.className = 'duty-badge badge-act-daily';
+            badge.innerText = r.member;
+          }
           cell.appendChild(badge);
         });
+      } else {
+        if (scheduleInfo && scheduleInfo.leader) {
+          const planSpan = document.createElement('div');
+          planSpan.className = 'plan-leader-text';
+          planSpan.innerText = scheduleInfo.leader;
+          cell.appendChild(planSpan);
+        }
       }
 
       grid.appendChild(cell);
     }
   }
 
+  function renderHalfDutyLogic() {
+    const halfRecords = records.filter(r => r.type === 'half');
+    const baseStart = "2026-09-02";
+    const cycleLength = 36;
+    const today = new Date().toISOString().split('T')[0];
+
+    let curStart = baseStart;
+    while (addDays(curStart, cycleLength - 1) < today) {
+      curStart = addDays(curStart, cycleLength);
+    }
+    const curEnd = addDays(curStart, cycleLength - 1);
+
+    const rangeStr = `${formatMMDD(curStart)} ~ ${formatMMDD(curEnd)}`;
+    const thisRoundRecords = halfRecords.filter(r => r.date >= curStart && r.date <= curEnd);
+    const doneMembers = [...new Set(thisRoundRecords.map(r => r.member))];
+    const undoneMembers = members.filter(m => !doneMembers.includes(m));
+
+    const doneHtml = doneMembers.length > 0 
+      ? doneMembers.map(m => `<span style="color:#16a34a; font-weight:bold; margin:0 4px;">✓ ${m}</span>`).join('') 
+      : '<span style="color:#94a3b8;">无</span>';
+
+    const undoneHtml = undoneMembers.length > 0 
+      ? undoneMembers.map(m => `<span style="color:#dc2626; font-weight:bold; margin:0 4px;">✗ ${m}</span>`).join('') 
+      : '<span style="color:#16a34a; font-weight:bold;">🎉 本轮全员已完成！</span>';
+
+    document.getElementById('report-half-text').innerHTML = `
+      <div><strong>【本轮周期】</strong> (${rangeStr}，共 36 天大周期)</div>
+      <div style="margin-top:2px;">已值日：${doneHtml} &nbsp;|&nbsp; 未值日：${undoneHtml}</div>
+    `;
+
+    const halfMap = {};
+    halfRecords.forEach(r => {
+      if (!halfMap[r.date]) halfMap[r.date] = [];
+      halfMap[r.date].push(r);
+    });
+    renderSimpleSubCalendar('grid-half', halfMap, 'badge-half-tag');
+  }
+
+  function renderMantouLogic() {
+    const mantouRecords = records.filter(r => r.type === 'mantou');
+    const baseStart = "2026-09-12";
+    const cycleLength = 6;
+    const today = new Date().toISOString().split('T')[0];
+
+    let curStart = baseStart;
+    while (addDays(curStart, cycleLength - 1) < today) {
+      curStart = addDays(curStart, cycleLength);
+    }
+    const curEnd = addDays(curStart, cycleLength - 1);
+
+    const rangeStr = `${formatMMDD(curStart)} ~ ${formatMMDD(curEnd)}`;
+    const count = mantouRecords.filter(r => r.date >= curStart && r.date <= curEnd).length;
+
+    let tip = count >= 2 
+      ? `<span style="color:#16a34a; font-weight:bold;">✓ 已达标 (完成 ${count}/2 次)</span>`
+      : `<span style="color:#dc2626; font-weight:bold;">✗ 尚差 ${2 - count} 次未打卡 (目前 ${count}/2 次)</span>`;
+
+    document.getElementById('report-mantou-text').innerHTML = `
+      <div><strong>【本轮周期】</strong> (${rangeStr}，共 6 天周期)</div>
+      <div style="margin-top:2px;">QH 馒头完成状态：${tip}</div>
+    `;
+
+    const mantouMap = {};
+    mantouRecords.forEach(r => {
+      if (!mantouMap[r.date]) mantouMap[r.date] = [];
+      mantouMap[r.date].push(r);
+    });
+    renderSimpleSubCalendar('grid-mantou', mantouMap, 'badge-mantou-tag');
+  }
+
+  function renderSimpleSubCalendar(containerId, dataMap, badgeClass) {
+    const grid = document.getElementById(containerId);
+    grid.innerHTML = '';
+
+    const weekHeaders = ['日', '一', '二', '三', '四', '五', '六'];
+    weekHeaders.forEach(w => {
+      const th = document.createElement('div');
+      th.className = 'cal-header-cell';
+      th.innerText = w;
+      grid.appendChild(th);
+    });
+
+    const year = currentCalDate.getFullYear();
+    const month = currentCalDate.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    for (let i = 0; i < firstDay; i++) {
+      const emptyCell = document.createElement('div');
+      emptyCell.className = 'cal-day-cell empty';
+      grid.appendChild(emptyCell);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-day-cell';
+      const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      if (dStr === todayStr) cell.classList.add('cal-today');
+
+      const numSpan = document.createElement('span');
+      numSpan.className = 'cal-day-num';
+      numSpan.innerText = day;
+      cell.appendChild(numSpan);
+
+      if (dataMap[dStr]) {
+        dataMap[dStr].forEach(item => {
+          const badge = document.createElement('div');
+          badge.className = `duty-badge ${badgeClass}`;
+          badge.innerText = item.member;
+          cell.appendChild(badge);
+        });
+      }
+      grid.appendChild(cell);
+    }
+  }
+
   function renderMemberSelects() {
-    const selects = ['member-select', 'edit-member-select'];
+    const selects = ['member-select', 'edit-member-select', 'replacee-select', 'edit-replacee-select'];
     selects.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -1037,12 +1222,20 @@
       });
       if (cur) el.value = cur;
     });
-    handleTypeChange('record-type', 'member-select');
+    handleTypeChange('record-type', 'member-select', 'replace-box');
   }
 
-  function handleTypeChange(typeElemId, memberElemId) {
+  function handleTypeChange(typeElemId, memberElemId, replaceBoxId) {
     const type = document.getElementById(typeElemId).value;
     const sel = document.getElementById(memberElemId);
+    const repBox = document.getElementById(replaceBoxId);
+
+    if (type === 'replace') {
+      if (repBox) repBox.style.display = 'block';
+    } else {
+      if (repBox) repBox.style.display = 'none';
+    }
+
     if (type === 'mantou') {
       sel.value = 'QH';
       sel.disabled = true;
@@ -1062,18 +1255,20 @@
     }
 
     const badgeMap = {
-      daily: '<span class="badge badge-daily">每人一天</span>',
-      buy: '<span class="badge badge-buy-tag">买菜值日</span>',
-      half: '<span class="badge badge-half">半天搭档</span>',
-      mantou: '<span class="badge badge-mantou">QH馒头</span>'
+      daily: '<span class="badge badge-table-daily">轮班做饭</span>',
+      replace: '<span class="badge badge-table-replace">顶替值日</span>',
+      buy: '<span class="badge badge-table-buy">买菜打卡</span>',
+      half: '<span class="badge badge-table-half">半天搭档</span>',
+      mantou: '<span class="badge badge-table-mantou">QH馒头</span>'
     };
 
     records.forEach(r => {
       const tr = document.createElement('tr');
+      const personText = r.type === 'replace' ? `<strong>${r.member}</strong> (替 ${r.replacee})` : `<strong>${r.member}</strong>`;
       tr.innerHTML = `
         <td>${r.date}</td>
         <td>${badgeMap[r.type] || r.type}</td>
-        <td><strong>${r.member}</strong></td>
+        <td>${personText}</td>
         <td style="color:#64748b; font-size:0.8rem;">${r.timestamp || '-'}</td>
         <td>
           <button class="btn-action btn-edit" onclick="openEditModal(${r.id})">修改</button>
@@ -1094,9 +1289,9 @@
       members = newMembers;
       renderMemberSelects();
       renderAllCalendars();
-      showToast('成员名单已同步保存！');
+      showToast('排班顺位已同步保存！');
     } catch (e) {
-      showToast('名单修改失败: ' + e.message, 'error');
+      showToast('修改失败: ' + e.message, 'error');
     }
   }
 </script>
