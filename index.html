@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>厨房值日打卡系统</title>
   <style>
     :root {
@@ -17,7 +17,8 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 16px;
+      padding: 12px;
+      box-sizing: border-box;
     }
     .container {
       max-width: 980px;
@@ -25,27 +26,27 @@
     }
     header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     h1 {
       margin: 0 0 6px 0;
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       color: #0f172a;
     }
     .status-banner {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 12px;
+      padding: 3px 10px;
       border-radius: 9999px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       background: #e2e8f0;
       color: #475569;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #94a3b8;
     }
@@ -55,7 +56,7 @@
 
     #toast-container {
       position: fixed;
-      top: 20px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 9999;
@@ -67,16 +68,16 @@
     }
     .toast-msg {
       pointer-events: auto;
-      min-width: 220px;
+      min-width: 200px;
       max-width: 90vw;
-      padding: 10px 18px;
+      padding: 8px 16px;
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 500;
       box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       opacity: 0;
       transform: translateY(-15px);
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -91,50 +92,50 @@
 
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid var(--border);
     }
     .card-title {
-      font-size: 1.05rem;
+      font-size: 0.98rem;
       font-weight: 600;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
 
     .cal-controls {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.9rem;
+      gap: 6px;
+      font-size: 0.85rem;
     }
     .cal-btn {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
-      padding: 5px 10px;
-      border-radius: 6px;
+      padding: 4px 8px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 500;
     }
     .cal-btn:hover { background: #e2e8f0; }
 
     .tab-bar {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       border-bottom: 2px solid #e2e8f0;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       overflow-x: auto;
     }
     .tab-btn {
-      padding: 10px 16px;
-      font-size: 0.92rem;
+      padding: 8px 12px;
+      font-size: 0.88rem;
       font-weight: 600;
       border: none;
       background: transparent;
@@ -145,13 +146,12 @@
       white-space: nowrap;
       transition: all 0.2s;
     }
-    .tab-btn:hover { color: #1e293b; }
     .tab-btn.active {
       color: var(--primary);
       border-bottom-color: var(--primary);
       background: #f8fafc;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
     }
 
     .tab-pane { display: none; }
@@ -160,125 +160,139 @@
       animation: fadeIn 0.2s ease-in-out;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
+      from { opacity: 0; transform: translateY(3px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     .cal-wrapper {
-      padding: 14px;
+      padding: 10px;
       background: #f8fafc;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid #cbd5e1;
     }
     .cal-report-header {
-      margin: 0 0 12px 0;
-      padding-bottom: 10px;
+      margin: 0 0 10px 0;
+      padding-bottom: 8px;
       border-bottom: 1px dashed #cbd5e1;
-      font-size: 0.95rem;
-      line-height: 1.6;
+      font-size: 0.88rem;
+      line-height: 1.5;
     }
     .report-content {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       color: #1e293b;
     }
     .text-done {
       color: #16a34a;
       font-weight: bold;
-      margin: 0 4px;
+      margin: 0 3px;
     }
     .text-undone {
       color: #dc2626;
       font-weight: bold;
-      margin: 0 4px;
+      margin: 0 3px;
     }
 
     .repay-tip-bar {
       margin-top: 6px;
-      padding: 6px 10px;
+      padding: 5px 8px;
       background: #fffbeb;
       border: 1px solid #fef3c7;
       border-left: 3px solid #f59e0b;
-      border-radius: 6px;
-      font-size: 0.86rem;
+      border-radius: 5px;
+      font-size: 0.82rem;
       color: #92400e;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
 
+    /* 日历 7 列网格 */
     .calendar-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 3px;
+      width: 100%;
     }
     .cal-header-cell {
       text-align: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: #475569;
-      padding: 6px 0;
+      padding: 4px 0;
     }
     .cal-day-cell {
-      border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
-      min-height: 72px;
-      padding: 4px 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      min-height: 58px;
+      padding: 3px 2px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      gap: 2px;
+      gap: 1px;
       box-sizing: border-box;
-      transition: all 0.2s;
+      transition: all 0.15s;
       position: relative;
+      overflow: hidden;
     }
     .cal-day-cell.empty {
       background: transparent !important;
       border-color: transparent !important;
     }
     .cal-day-num {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #64748b;
       font-weight: 700;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
+      padding-left: 2px;
     }
     .cal-today {
-      outline: 3px solid #4f46e5;
+      outline: 2px solid #4f46e5;
       outline-offset: -1px;
     }
     .cal-today .cal-day-num {
       color: #4f46e5;
-      font-size: 0.85rem;
+      font-weight: 900;
     }
 
-    /* 醒目深色彩条交替轮班背景 */
-    .cycle-bg-0 { background-color: #dcfce7 !important; border-color: #86efac !important; border-left: 4px solid #16a34a !important; }
-    .cycle-bg-1 { background-color: #dbeafe !important; border-color: #93c5fd !important; border-left: 4px solid #2563eb !important; }
-    .cycle-bg-2 { background-color: #ffedd5 !important; border-color: #fdba74 !important; border-left: 4px solid #ea580c !important; }
-    .cycle-bg-3 { background-color: #f3e8ff !important; border-color: #d8b4fe !important; border-left: 4px solid #9333ea !important; }
-    .cycle-bg-4 { background-color: #fce7f3 !important; border-color: #f9a8d4 !important; border-left: 4px solid #db2777 !important; }
-    .cycle-bg-5 { background-color: #ccfbf1 !important; border-color: #5eead4 !important; border-left: 4px solid #0d9488 !important; }
+    /* 仅保留两套高辨识度交替颜色 (双色斑马纹，极简不杂乱) */
+    .cycle-alt-0 {
+      background-color: #f0f7ff !important; /* 柔和浅蓝 */
+      border-color: #bfdbfe !important;
+      border-top: 3px solid #3b82f6 !important;
+    }
+    .cycle-alt-1 {
+      background-color: #fbfbfb !important; /* 清爽暖白/浅灰 */
+      border-color: #e2e8f0 !important;
+      border-top: 3px solid #94a3b8 !important;
+    }
 
+    /* 未打卡时排班负责人（浅灰色小字） */
     .plan-leader-text {
-      font-size: 0.78rem;
-      color: #64748b;
-      font-weight: 700;
-      margin-top: 6px;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      font-weight: 600;
+      margin-top: 4px;
       text-align: center;
-      line-height: 1.2;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
+    /* 手机适配：精简徽章文字，防止撑宽 */
     .duty-badge {
-      font-size: 0.72rem;
-      padding: 2px 4px;
-      border-radius: 4px;
+      font-size: 0.65rem;
+      padding: 1px 2px;
+      border-radius: 3px;
       text-align: center;
       font-weight: bold;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      margin-bottom: 2px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+      margin-bottom: 1px;
+      line-height: 1.2;
     }
     .badge-act-daily { background: #2563eb; color: white; }
     .badge-act-replace { background: #7c3aed; color: white; }
@@ -288,22 +302,22 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
     }
     label {
       display: block;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #64748b;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     select, input, button {
       width: 100%;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 8px;
+      border-radius: 6px;
       border: 1px solid var(--border);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       box-sizing: border-box;
     }
     button.btn-primary {
@@ -323,19 +337,19 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
     th, td {
-      padding: 10px;
+      padding: 8px;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
     }
     th { background: #f1f5f9; color: #475569; }
     .badge {
       display: inline-block;
-      padding: 2px 8px;
+      padding: 2px 6px;
       border-radius: 4px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
     }
     .badge-table-daily { background: #e0e7ff; color: #3730a3; }
@@ -345,12 +359,12 @@
     .badge-table-mantou { background: #dcfce7; color: #166534; }
 
     .btn-action {
-      padding: 4px 8px;
-      font-size: 0.75rem;
+      padding: 3px 6px;
+      font-size: 0.72rem;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      margin-right: 4px;
+      margin-right: 2px;
     }
     .btn-edit { background: #3b82f6; color: white; }
     .btn-del { background: #ef4444; color: white; }
@@ -369,10 +383,23 @@
     .modal-card {
       background: white;
       border-radius: 12px;
-      padding: 22px;
+      padding: 20px;
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 移动端极限紧凑适配，防止撑爆日历 */
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .card { padding: 10px; margin-bottom: 10px; }
+      .cal-wrapper { padding: 6px; }
+      .calendar-grid { gap: 2px; }
+      .cal-day-cell { min-height: 52px; padding: 2px 1px; }
+      .cal-day-num { font-size: 0.68rem; }
+      .plan-leader-text { font-size: 0.65rem; margin-top: 2px; }
+      .duty-badge { font-size: 0.6rem; padding: 1px 1px; }
+      h1 { font-size: 1.2rem; }
     }
   </style>
 </head>
@@ -389,7 +416,7 @@
     </div>
   </header>
 
-  <!-- 3 种值日日历视图 -->
+  <!-- 日历视图卡片 -->
   <div class="card">
     <div class="card-title">
       <span>📅 值日轮次日历视图</span>
@@ -511,7 +538,7 @@
     <div style="margin-bottom: 14px;">
       <label>本轮轮班开始日期：</label>
       <input type="date" id="cfg-base-date" />
-      <span style="font-size: 0.78rem; color: #64748b;">设置本轮第一人（如AL）负责的起始日期，以此基准推演所有轮次。</span>
+      <span style="font-size: 0.78rem; color: #64748b;">设置本轮第一人（如AL）负责的起始日期，以此基准向前向后严格交替推演。</span>
     </div>
     <div style="margin-bottom: 18px;">
       <label>固定排班顺位 (英文逗号分隔)：</label>
@@ -681,10 +708,9 @@
       try {
         data = JSON.parse(issue.body);
       } catch (err) {
-        console.warn('解析 body 格式回退', err);
+        console.warn('解析回退', err);
       }
 
-      // 安全读取并保证格式向后兼容
       if (data && data.members && Array.isArray(data.members) && data.members.length > 0) {
         members = data.members;
       }
@@ -692,7 +718,6 @@
         baseCycleStart = data.baseCycleStart;
       }
       
-      // 容错处理：确保读取到历史数据
       if (data && Array.isArray(data.records)) {
         records = data.records;
       } else if (Array.isArray(data)) {
@@ -881,7 +906,14 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 严格推演算法（确保23和24日颜色错开） =====================
+  // 计算两日期间隔的自然天数 (dateB - dateA)
+  function diffDays(dateA, dateB) {
+    const da = new Date(dateA + 'T00:00:00');
+    const db = new Date(dateB + 'T00:00:00');
+    return Math.round((db - da) / (1000 * 60 * 60 * 24));
+  }
+
+  // ===================== 绝对锚点推演算法 (彻底解决23日与24日连色) =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -894,22 +926,23 @@
 
     const roundList = [];
 
-    // 1. 从基准日向前倒推 15 轮，每轮 6 天连续紧密拼接
+    // 1. 向前倒推 15 轮 (严格以 baseCycleStart 为界向前，每轮6天)
     for (let p = 15; p >= 1; p--) {
       const pStart = addDays(baseCycleStart, -6 * p);
       const pEnd = addDays(pStart, 5);
-      const cIdx = ((600 - p) % 6);
+      // 双色交替：绝对轮次模 2
+      const altIdx = (Math.abs(-p) % 2);
       roundList.push({
         roundIndex: -p,
         startDate: pStart,
         endDate: pEnd,
         roster: [...members],
         length: 6,
-        colorIndex: cIdx
+        altClass: `cycle-alt-${altIdx}`
       });
     }
 
-    // 2. 从基准日往后推演 35 轮（本轮起点严格从 baseCycleStart 开始，色系为 0）
+    // 2. 向后推演 35 轮 (第 0 轮从 baseCycleStart 开始)
     let curStartDate = baseCycleStart;
     let exemptNextRoundMember = null;
 
@@ -923,6 +956,7 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
+      // 若在当前轮次内“先做饭后买菜”，下轮豁免为5人
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
@@ -933,18 +967,22 @@
         }
       });
 
+      // 仅用 2 种颜色交替，保证相邻轮次绝对不同
+      const altIdx = (i % 2);
+
       roundList.push({
         roundIndex: i,
         startDate: curStartDate,
         endDate: curEndDate,
         roster: curRoster,
         length: cycleDays,
-        colorIndex: (i % 6)
+        altClass: `cycle-alt-${altIdx}`
       });
 
       curStartDate = addDays(curEndDate, 1);
     }
 
+    // 建立 日期 -> 排班数据
     const dateScheduleMap = {};
     roundList.forEach(rnd => {
       rnd.roster.forEach((leader, dIdx) => {
@@ -952,11 +990,12 @@
         dateScheduleMap[dStr] = {
           round: rnd,
           leader: leader,
-          colorClass: `cycle-bg-${rnd.colorIndex}`
+          altClass: rnd.altClass
         };
       });
     });
 
+    // 统计顶班债权还班
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -1030,7 +1069,7 @@
 
       if (cookRecord) {
         if (cookRecord.type === 'replace') {
-          doneHtmlList.push(`<span class="text-done">✓ ${leader} (${cookRecord.member}替)</span>`);
+          doneHtmlList.push(`<span class="text-done">✓ ${leader}(${cookRecord.member}替)</span>`);
         } else {
           doneHtmlList.push(`<span class="text-done">✓ ${leader}</span>`);
         }
@@ -1051,7 +1090,7 @@
     reportBox.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
         <div><strong>【本轮周期】</strong> <span style="color:#4f46e5; font-weight:bold;">${rangeStr}</span> (共 ${currentRound.length} 天)</div>
-        <div style="font-size:0.85rem; color:#64748b;">本轮顺位：<strong>${currentRound.roster.join(' → ')}</strong></div>
+        <div style="font-size:0.82rem; color:#64748b;">本轮顺位：<strong>${currentRound.roster.join(' → ')}</strong></div>
       </div>
       <div style="margin-top:4px;">
         <strong>值日进度</strong>：${doneDisplay} &nbsp;|&nbsp; ${undoneDisplay}
@@ -1094,8 +1133,9 @@
       const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const scheduleInfo = dateScheduleMap[dStr];
 
-      if (scheduleInfo && scheduleInfo.colorClass) {
-        cell.classList.add(scheduleInfo.colorClass);
+      // 仅两种颜色交替斑马纹
+      if (scheduleInfo && scheduleInfo.altClass) {
+        cell.classList.add(scheduleInfo.altClass);
       }
 
       if (dStr === todayStr) {
@@ -1112,12 +1152,13 @@
       if (realDuties && realDuties.length > 0) {
         realDuties.forEach(r => {
           const badge = document.createElement('div');
+          // 手机端优化：超短精炼文字，绝不撑宽
           if (r.type === 'buy') {
             badge.className = 'duty-badge badge-act-buy';
-            badge.innerText = `${r.member}(买菜)`;
+            badge.innerText = `${r.member}·菜`;
           } else if (r.type === 'replace') {
             badge.className = 'duty-badge badge-act-replace';
-            badge.innerText = `${r.member}(替${r.replacee})`;
+            badge.innerText = `${r.member}·替`;
           } else {
             badge.className = 'duty-badge badge-act-daily';
             badge.innerText = r.member;
@@ -1155,11 +1196,11 @@
     const undoneMembers = members.filter(m => !doneMembers.includes(m));
 
     const doneHtml = doneMembers.length > 0 
-      ? doneMembers.map(m => `<span style="color:#16a34a; font-weight:bold; margin:0 4px;">✓ ${m}</span>`).join('') 
+      ? doneMembers.map(m => `<span style="color:#16a34a; font-weight:bold; margin:0 3px;">✓ ${m}</span>`).join('') 
       : '<span style="color:#94a3b8;">无</span>';
 
     const undoneHtml = undoneMembers.length > 0 
-      ? undoneMembers.map(m => `<span style="color:#dc2626; font-weight:bold; margin:0 4px;">✗ ${m}</span>`).join('') 
+      ? undoneMembers.map(m => `<span style="color:#dc2626; font-weight:bold; margin:0 3px;">✗ ${m}</span>`).join('') 
       : '<span style="color:#16a34a; font-weight:bold;">🎉 本轮全员已完成！</span>';
 
     document.getElementById('report-half-text').innerHTML = `
@@ -1191,8 +1232,8 @@
     const count = mantouRecords.filter(r => r.date >= curStart && r.date <= curEnd).length;
 
     let tip = count >= 2 
-      ? `<span style="color:#16a34a; font-weight:bold;">✓ 已达标 (完成 ${count}/2 次)</span>`
-      : `<span style="color:#dc2626; font-weight:bold;">✗ 尚差 ${2 - count} 次未打卡 (目前 ${count}/2 次)</span>`;
+      ? `<span style="color:#16a34a; font-weight:bold;">✓ 已达标 (${count}/2次)</span>`
+      : `<span style="color:#dc2626; font-weight:bold;">✗ 尚差${2 - count}次 (${count}/2次)</span>`;
 
     document.getElementById('report-mantou-text').innerHTML = `
       <div><strong>【本轮周期】</strong> (${rangeStr}，共 6 天周期)</div>
