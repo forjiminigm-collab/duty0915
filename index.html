@@ -254,7 +254,7 @@
       font-weight: 900;
     }
 
-    /* 轮次颜色交替系统 */
+    /* 轮次交替颜色系统 */
     .cycle-round-0 {
       background-color: #f0f7ff !important;
       border-color: #bfdbfe !important;
@@ -571,9 +571,8 @@
 <script>
   const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";
 
-  // 固定标准顺位
+  // 固定排班标准顺位
   const baseOrder = ["AL", "LH", "AS", "SZ", "XB", "QH"];
-  let members = [...baseOrder];
   let records = [];
   let recordIdToDelete = null;
   let currentCalDate = new Date();
@@ -851,7 +850,7 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 推演核心算法 =====================
+  // ===================== 彻底纠正排班算法 =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -865,18 +864,18 @@
     const roundList = [];
     const dateScheduleMap = {};
 
-    // 1. 明确写死 9月28日 为上一轮最后一天，负责人为 QH
+    // 1. 硬编码历史：9月28日是上一轮结束，负责人是 QH (色系 0)
     dateScheduleMap["2026-09-28"] = {
-      round: { roundIndex: -1, altIdx: 1 },
+      round: { roundIndex: -1, altIdx: 0, startDate: "2026-09-24", endDate: "2026-09-28", roster: ["AL","LH","AS","SZ","QH"] },
       leader: "QH",
-      altIdx: 1
+      altIdx: 0
     };
 
-    // 2. 从 2026-09-29 开始开启新一轮，排班 6 人顺位
+    // 2. 从 2026-09-29 正式启动新一轮（色系 1：琥珀暖色系，与28号的蓝色清晰区分）
     let curStartDate = "2026-09-29";
     let exemptNextRoundMember = null;
 
-    for (let i = 0; i <= 35; i++) {
+    for (let i = 0; i < 35; i++) {
       let curRoster = [...baseOrder];
       if (exemptNextRoundMember) {
         curRoster = curRoster.filter(m => m !== exemptNextRoundMember);
@@ -886,7 +885,7 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
-      // 检查当前轮是否有先做饭后买菜的情况
+      // 仅监控 9月29日 之后发生的新买菜豁免
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
@@ -897,7 +896,8 @@
         }
       });
 
-      const altIdx = (i % 2);
+      // 轮次交替颜色：新的一轮(0929~1004)设为 1，下一轮设为 0
+      const altIdx = (i % 2 === 0) ? 1 : 0;
       const rndObj = {
         roundIndex: i,
         startDate: curStartDate,
@@ -920,7 +920,7 @@
       curStartDate = addDays(curEndDate, 1);
     }
 
-    // 3. 计算还班欠账与具体还班日期
+    // 3. 计算替班欠账与还班日期
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -947,6 +947,7 @@
       const [debtor, creditor] = pair.split('->');
 
       let foundDate = null;
+      // 往后找 60 天内哪天轮到债权人(creditor)负责做饭
       for (let offset = 0; offset < 60; offset++) {
         const checkD = addDays(todayStr, offset);
         const sched = dateScheduleMap[checkD];
@@ -977,9 +978,10 @@
   function renderMainGridAndReport(roundList, dateScheduleMap, dutyMapByDate, repayTips) {
     const todayStr = new Date().toISOString().split('T')[0];
 
+    // 当前新轮次（优先定位 9月29日 开始的第 0 轮）
     let currentRound = roundList.find(r => todayStr >= r.startDate && todayStr <= r.endDate);
     if (!currentRound) {
-      currentRound = roundList[0]; // 默认指向 9月29日 开始的新一轮
+      currentRound = roundList[0];
     }
 
     const rangeStr = `${formatMMDD(currentRound.startDate)} ~ ${formatMMDD(currentRound.endDate)}`;
@@ -1049,7 +1051,8 @@
       const scheduleInfo = dateScheduleMap[dStr];
       const isToday = dStr === todayStr;
 
-      if (scheduleInfo) {
+      // 9月18日之前完全不渲染轮班背景与顶条
+      if (dStr >= "2026-09-18" && scheduleInfo) {
         cell.classList.add(`cycle-round-${scheduleInfo.altIdx}`);
       }
 
@@ -1078,7 +1081,7 @@
           cell.appendChild(badge);
         });
       } else {
-        if (scheduleInfo && scheduleInfo.leader) {
+        if (dStr >= "2026-09-18" && scheduleInfo && scheduleInfo.leader) {
           const planSpan = document.createElement('div');
           planSpan.className = `plan-leader-text cycle-text-${scheduleInfo.altIdx}`;
           planSpan.innerText = scheduleInfo.leader;
