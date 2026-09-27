@@ -2,8 +2,36 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
+  <!-- 彻底封杀所有设备和浏览器的本地缓存 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>厨房值日打卡系统</title>
+  <script>
+    // 强制自动清理旧手机离线缓存机制
+    (function() {
+      const CURRENT_SYS_VER = "20260929-FIX-NZ-01";
+      const localVer = localStorage.getItem("sys_client_version");
+      
+      // 注销可能存在的任何离线缓存服务
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+
+      if (localVer !== CURRENT_SYS_VER) {
+        localStorage.setItem("sys_client_version", CURRENT_SYS_VER);
+        // 如果当前网址没带当前版本号，强制重定向附加版本号刷新
+        if (!window.location.search.includes(CURRENT_SYS_VER)) {
+          window.location.replace(window.location.pathname + '?v=' + CURRENT_SYS_VER + '&t=' + Date.now());
+        }
+      }
+    })();
+  </script>
   <style>
     :root {
       --primary: #4f46e5;
@@ -254,7 +282,7 @@
       font-weight: 900;
     }
 
-    /* 轮次交替颜色系统 */
+    /* 轮次交替颜色体系 */
     .cycle-round-0 {
       background-color: #f0f7ff !important;
       border-color: #bfdbfe !important;
@@ -427,7 +455,7 @@
         <button class="cal-btn" onclick="changeMonth(-1)">◀ 上月</button>
         <strong id="calendar-current-month" style="color:#0f172a;">2026年9月</strong>
         <button class="cal-btn" onclick="changeMonth(1)">下月 ▶</button>
-        <button class="cal-btn" onclick="fetchData(true)" style="background:#e0e7ff; color:#3730a3;">🔄 刷新</button>
+        <button class="cal-btn" onclick="forceHardRefresh()" style="background:#fee2e2; color:#b91c1c;">⚡清缓存刷新</button>
       </div>
     </div>
 
@@ -577,7 +605,7 @@
   let recordIdToDelete = null;
   let currentCalDate = new Date();
 
-  // 严格基于本地时区的年月日（彻底规避 UTC 跨天误差）
+  // 严格基于本地时区的年月日（彻底规避跨时区天数漂移）
   function getLocalDateStr(d = new Date()) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -590,6 +618,13 @@
     const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
     d.setDate(d.getDate() + n);
     return getLocalDateStr(d);
+  }
+
+  function forceHardRefresh() {
+    localStorage.clear();
+    sessionStorage.clear();
+    const cleanUrl = window.location.origin + window.location.pathname + '?hard_refresh=' + Date.now();
+    window.location.replace(cleanUrl);
   }
 
   function switchTab(type) {
@@ -661,7 +696,11 @@
   async function fetchData(manual = false) {
     updateStatus('syncing', '正在拉取云端数据...');
     try {
-      const resp = await fetch(WORKER_API_URL, { method: 'GET' });
+      // 附加时间戳彻底消灭请求缓存
+      const resp = await fetch(WORKER_API_URL + '?_t=' + Date.now(), { 
+        method: 'GET',
+        cache: 'no-store'
+      });
       if (!resp.ok) throw new Error(`云端接口异常 (${resp.status})`);
 
       const rawJson = await resp.json();
@@ -731,7 +770,7 @@
     try {
       let currentRecords = records;
       try {
-        const resp = await fetch(WORKER_API_URL, { method: 'GET' });
+        const resp = await fetch(WORKER_API_URL + '?_t=' + Date.now(), { method: 'GET', cache: 'no-store' });
         if (resp.ok) {
           const raw = await resp.json();
           const d = safeParsePayload(raw.body !== undefined ? raw.body : raw);
@@ -858,7 +897,7 @@
     return dateStr;
   }
 
-  // ===================== 推演核心算法（彻底解耦时区） =====================
+  // ===================== 推演核心算法（解耦时区 + 绝对硬编码） =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -872,14 +911,14 @@
     const roundList = [];
     const dateScheduleMap = {};
 
-    // 1. 明确写死 9月28日 为上一轮最后一天，负责人为 QH
+    // 1. 明确写死 9月28日 为上一轮最后一天，负责人为 QH (色系 0)
     dateScheduleMap["2026-09-28"] = {
       round: { roundIndex: -1, altIdx: 0, startDate: "2026-09-24", endDate: "2026-09-28", roster: ["AL","LH","AS","SZ","QH"] },
       leader: "QH",
       altIdx: 0
     };
 
-    // 2. 从 2026-09-29 开始开启新一轮，排班 6 人顺位
+    // 2. 从 2026-09-29 开始开启新一轮，排班 6 人标准顺位 (色系 1: 琥珀暖色，与28号分明)
     let curStartDate = "2026-09-29";
     let exemptNextRoundMember = null;
 
@@ -893,7 +932,7 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
-      // 仅监控 9月29日 之后发生的新买菜豁免
+      // 仅监控 9月29日 之后的新买菜豁免
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
