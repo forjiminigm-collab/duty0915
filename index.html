@@ -577,6 +577,21 @@
   let recordIdToDelete = null;
   let currentCalDate = new Date();
 
+  // 严格基于本地时区的年月日（彻底规避 UTC 跨天误差）
+  function getLocalDateStr(d = new Date()) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function addDays(dateStr, n) {
+    const parts = dateStr.split('-');
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    d.setDate(d.getDate() + n);
+    return getLocalDateStr(d);
+  }
+
   function switchTab(type) {
     ['daily', 'half', 'mantou'].forEach(t => {
       document.getElementById(`btn-tab-${t}`).classList.remove('active');
@@ -604,8 +619,7 @@
   }
 
   window.onload = function() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('record-date').value = today;
+    document.getElementById('record-date').value = getLocalDateStr();
     updateMonthTitle();
     renderMemberSelects();
     renderRecords();
@@ -844,13 +858,7 @@
     return dateStr;
   }
 
-  function addDays(dateStr, n) {
-    const d = new Date(dateStr + 'T00:00:00');
-    d.setDate(d.getDate() + n);
-    return d.toISOString().split('T')[0];
-  }
-
-  // ===================== 彻底纠正排班算法 =====================
+  // ===================== 推演核心算法（彻底解耦时区） =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -864,14 +872,14 @@
     const roundList = [];
     const dateScheduleMap = {};
 
-    // 1. 硬编码历史：9月28日是上一轮结束，负责人是 QH (色系 0)
+    // 1. 明确写死 9月28日 为上一轮最后一天，负责人为 QH
     dateScheduleMap["2026-09-28"] = {
       round: { roundIndex: -1, altIdx: 0, startDate: "2026-09-24", endDate: "2026-09-28", roster: ["AL","LH","AS","SZ","QH"] },
       leader: "QH",
       altIdx: 0
     };
 
-    // 2. 从 2026-09-29 正式启动新一轮（色系 1：琥珀暖色系，与28号的蓝色清晰区分）
+    // 2. 从 2026-09-29 开始开启新一轮，排班 6 人顺位
     let curStartDate = "2026-09-29";
     let exemptNextRoundMember = null;
 
@@ -896,7 +904,6 @@
         }
       });
 
-      // 轮次交替颜色：新的一轮(0929~1004)设为 1，下一轮设为 0
       const altIdx = (i % 2 === 0) ? 1 : 0;
       const rndObj = {
         roundIndex: i,
@@ -920,7 +927,7 @@
       curStartDate = addDays(curEndDate, 1);
     }
 
-    // 3. 计算替班欠账与还班日期
+    // 3. 计算还班欠账与具体还班日期
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -940,14 +947,13 @@
     });
 
     const repayTips = [];
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateStr();
 
     Object.entries(debtCounts).forEach(([pair, count]) => {
       if (count <= 0) return;
       const [debtor, creditor] = pair.split('->');
 
       let foundDate = null;
-      // 往后找 60 天内哪天轮到债权人(creditor)负责做饭
       for (let offset = 0; offset < 60; offset++) {
         const checkD = addDays(todayStr, offset);
         const sched = dateScheduleMap[checkD];
@@ -976,9 +982,8 @@
   }
 
   function renderMainGridAndReport(roundList, dateScheduleMap, dutyMapByDate, repayTips) {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateStr();
 
-    // 当前新轮次（优先定位 9月29日 开始的第 0 轮）
     let currentRound = roundList.find(r => todayStr >= r.startDate && todayStr <= r.endDate);
     if (!currentRound) {
       currentRound = roundList[0];
@@ -986,7 +991,6 @@
 
     const rangeStr = `${formatMMDD(currentRound.startDate)} ~ ${formatMMDD(currentRound.endDate)}`;
 
-    // 格式化值日进度顺位
     const progressList = currentRound.roster.map((leader, idx) => {
       const dutyDate = addDays(currentRound.startDate, idx);
       const dayRecords = dutyMapByDate[dutyDate] || [];
@@ -1035,7 +1039,7 @@
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateStr();
 
     for (let i = 0; i < firstDay; i++) {
       const emptyCell = document.createElement('div');
@@ -1051,7 +1055,6 @@
       const scheduleInfo = dateScheduleMap[dStr];
       const isToday = dStr === todayStr;
 
-      // 9月18日之前完全不渲染轮班背景与顶条
       if (dStr >= "2026-09-18" && scheduleInfo) {
         cell.classList.add(`cycle-round-${scheduleInfo.altIdx}`);
       }
@@ -1097,7 +1100,7 @@
     const halfRecords = records.filter(r => r.type === 'half');
     const baseStart = "2026-09-02";
     const cycleLength = 36;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateStr();
 
     let curStart = baseStart;
     while (addDays(curStart, cycleLength - 1) < today) {
@@ -1135,7 +1138,7 @@
     const mantouRecords = records.filter(r => r.type === 'mantou');
     const baseStart = "2026-09-12";
     const cycleLength = 6;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateStr();
 
     let curStart = baseStart;
     while (addDays(curStart, cycleLength - 1) < today) {
@@ -1180,7 +1183,7 @@
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateStr();
 
     for (let i = 0; i < firstDay; i++) {
       const emptyCell = document.createElement('div');
