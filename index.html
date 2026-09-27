@@ -175,26 +175,20 @@
       margin: 0 0 10px 0;
       padding-bottom: 8px;
       border-bottom: 1px dashed #cbd5e1;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       line-height: 1.5;
     }
     .report-content {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: #1e293b;
     }
-    
-    .status-done {
+    .text-done {
       color: #16a34a;
       font-weight: bold;
     }
-    .status-undone {
+    .text-undone {
       color: #dc2626;
       font-weight: bold;
-    }
-    .arrow-sep {
-      color: #94a3b8;
-      margin: 0 4px;
-      font-size: 0.8rem;
     }
 
     .repay-tip-bar {
@@ -260,7 +254,7 @@
       font-weight: 900;
     }
 
-    /* 方案 A 视觉规则：顶部粗彩条 + 明显背景色区分 */
+    /* 轮次颜色交替系统 */
     .cycle-round-0 {
       background-color: #f0f7ff !important;
       border-color: #bfdbfe !important;
@@ -526,39 +520,6 @@
       </table>
     </div>
   </div>
-
-  <!-- 页面最底部：排班顺位与起点设置 -->
-  <div class="card" style="border-style: dashed; background: #fafafa;">
-    <div class="card-title">
-      <span>⚙️ 系统管理与排班参数</span>
-      <button class="btn-primary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="openConfigModal()">⚙️ 设置排班与本轮起点</button>
-    </div>
-    <div style="font-size: 0.85rem; color: #64748b; line-height: 1.6;">
-      当前基准起点日：<strong id="show-base-date" style="color:#0f172a;">2026-09-24</strong><br/>
-      标准轮班顺位：<strong id="show-members-list" style="color:#0f172a;">AL, LH, AS, SZ, XB, QH</strong>
-    </div>
-  </div>
-</div>
-
-<!-- 设置排班与本轮起点 弹窗 -->
-<div class="modal-overlay" id="config-modal">
-  <div class="modal-card">
-    <h3 style="margin-top:0; font-size:1.15rem; color:#1e293b;">⚙️ 排班顺位与本轮起点设置</h3>
-    <div style="margin-bottom: 14px;">
-      <label>本轮轮班开始日期：</label>
-      <input type="date" id="cfg-base-date" />
-      <span style="font-size: 0.78rem; color: #64748b;">设置本轮第一人（如AL）负责的起始日期。</span>
-    </div>
-    <div style="margin-bottom: 18px;">
-      <label>固定排班顺位 (英文逗号分隔)：</label>
-      <input type="text" id="cfg-members-input" />
-      <span style="font-size: 0.78rem; color: #64748b;">示例：AL, LH, AS, SZ, XB, QH</span>
-    </div>
-    <div style="display: flex; gap: 8px;">
-      <button class="btn-primary" onclick="saveConfigSettings()">保存并更新排班</button>
-      <button style="background: #e2e8f0; color: #475569;" onclick="closeConfigModal()">取消</button>
-    </div>
-  </div>
 </div>
 
 <!-- 修改打卡记录弹窗 -->
@@ -610,8 +571,9 @@
 <script>
   const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";
 
-  let members = ["AL", "LH", "AS", "SZ", "XB", "QH"];
-  let baseCycleStart = "2026-09-24";
+  // 固定标准顺位
+  const baseOrder = ["AL", "LH", "AS", "SZ", "XB", "QH"];
+  let members = [...baseOrder];
   let records = [];
   let recordIdToDelete = null;
   let currentCalDate = new Date();
@@ -646,7 +608,6 @@
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('record-date').value = today;
     updateMonthTitle();
-    updateSettingsView();
     renderMemberSelects();
     renderRecords();
     renderAllCalendars();
@@ -657,47 +618,6 @@
     const dot = document.getElementById('status-dot');
     dot.className = 'dot ' + state;
     document.getElementById('status-text').innerText = text;
-  }
-
-  function updateSettingsView() {
-    const elDate = document.getElementById('show-base-date');
-    const elMems = document.getElementById('show-members-list');
-    if (elDate) elDate.innerText = baseCycleStart;
-    if (elMems) elMems.innerText = members.join(', ');
-  }
-
-  function openConfigModal() {
-    document.getElementById('cfg-base-date').value = baseCycleStart;
-    document.getElementById('cfg-members-input').value = members.join(', ');
-    document.getElementById('config-modal').style.display = 'flex';
-  }
-
-  function closeConfigModal() {
-    document.getElementById('config-modal').style.display = 'none';
-  }
-
-  async function saveConfigSettings() {
-    const newDate = document.getElementById('cfg-base-date').value;
-    const memStr = document.getElementById('cfg-members-input').value.trim();
-    if (!newDate) return showToast('请选择本轮开始日期', 'error');
-    if (!memStr) return showToast('顺位不能为空', 'error');
-
-    const newMembers = memStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-    try {
-      updateStatus('syncing', '正在保存排班配置...');
-      await pushToCloud(records, newMembers, newDate);
-      members = newMembers;
-      baseCycleStart = newDate;
-      updateSettingsView();
-      renderMemberSelects();
-      renderAllCalendars();
-      closeConfigModal();
-      updateStatus('online', '已连接云端 (免密稳定同步)');
-      showToast('排班与本轮起点已更新保存！');
-    } catch (e) {
-      showToast('保存失败: ' + e.message, 'error');
-      updateStatus('error', '保存失败');
-    }
   }
 
   function changeMonth(offset) {
@@ -729,9 +649,7 @@
     updateStatus('syncing', '正在拉取云端数据...');
     try {
       const resp = await fetch(WORKER_API_URL, { method: 'GET' });
-      if (!resp.ok) {
-        throw new Error(`云端接口异常 (${resp.status})`);
-      }
+      if (!resp.ok) throw new Error(`云端接口异常 (${resp.status})`);
 
       const rawJson = await resp.json();
       let data = {};
@@ -742,12 +660,6 @@
       }
 
       if (data && typeof data === 'object') {
-        if (Array.isArray(data.members) && data.members.length > 0) {
-          members = data.members;
-        }
-        if (data.baseCycleStart && typeof data.baseCycleStart === 'string') {
-          baseCycleStart = data.baseCycleStart;
-        }
         if (Array.isArray(data.records)) {
           records = data.records;
         } else if (Array.isArray(data)) {
@@ -755,11 +667,10 @@
         }
       }
 
-      updateSettingsView();
       renderMemberSelects();
       renderRecords();
       renderAllCalendars();
-      updateStatus('online', '已连接云端 (免密稳定同步)');
+      updateStatus('online', '已连接云端 (数据实时同步)');
       if (manual) showToast('已成功刷新至最新数据！', 'info');
     } catch (err) {
       console.error(err);
@@ -770,10 +681,9 @@
     }
   }
 
-  async function pushToCloud(newRecords, newMembers, newBaseStart) {
+  async function pushToCloud(newRecords) {
     const payloadObj = {
-      members: newMembers || members,
-      baseCycleStart: newBaseStart || baseCycleStart,
+      members: baseOrder,
       records: newRecords || []
     };
 
@@ -819,7 +729,7 @@
       }
 
       currentRecords.unshift(newRecord);
-      await pushToCloud(currentRecords, members, baseCycleStart);
+      await pushToCloud(currentRecords);
 
       records = currentRecords;
       renderRecords();
@@ -851,7 +761,7 @@
     try {
       updateStatus('syncing', '正在删除...');
       const newRecords = records.filter(r => r.id !== recordIdToDelete);
-      await pushToCloud(newRecords, members, baseCycleStart);
+      await pushToCloud(newRecords);
       records = newRecords;
       renderRecords();
       renderAllCalendars();
@@ -908,7 +818,7 @@
         return r;
       });
 
-      await pushToCloud(newRecords, members, baseCycleStart);
+      await pushToCloud(newRecords);
       records = newRecords;
       renderRecords();
       renderAllCalendars();
@@ -941,7 +851,7 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 强制固定前两轮 + 从 9月30日 起动态推演 =====================
+  // ===================== 推演核心算法 =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -953,34 +863,21 @@
     });
 
     const roundList = [];
+    const dateScheduleMap = {};
 
-    // 1. 强制第 1 轮：2026-09-18 至 2026-09-23（固定琥珀橙色系 1，6人）
-    roundList.push({
-      roundIndex: -1,
-      startDate: "2026-09-18",
-      endDate: "2026-09-23",
-      roster: ["AL", "LH", "AS", "SZ", "XB", "QH"],
-      length: 6,
-      altIdx: 1 // 琥珀暖色
-    });
+    // 1. 明确写死 9月28日 为上一轮最后一天，负责人为 QH
+    dateScheduleMap["2026-09-28"] = {
+      round: { roundIndex: -1, altIdx: 1 },
+      leader: "QH",
+      altIdx: 1
+    };
 
-    // 2. 强制第 2 轮（当前本轮）：2026-09-24 至 2026-09-29（固定蓝色系 0，6天）
-    // 顺位：AL, LH, AS, SZ, QH, AL
-    roundList.push({
-      roundIndex: 0,
-      startDate: "2026-09-24",
-      endDate: "2026-09-29",
-      roster: ["AL", "LH", "AS", "SZ", "QH", "AL"],
-      length: 6,
-      altIdx: 0 // 蓝色系
-    });
-
-    // 3. 从 2026-09-30 开始，完全动态计算
-    let curStartDate = "2026-09-30";
+    // 2. 从 2026-09-29 开始开启新一轮，排班 6 人顺位
+    let curStartDate = "2026-09-29";
     let exemptNextRoundMember = null;
 
-    for (let i = 1; i <= 35; i++) {
-      let curRoster = [...members];
+    for (let i = 0; i <= 35; i++) {
+      let curRoster = [...baseOrder];
       if (exemptNextRoundMember) {
         curRoster = curRoster.filter(m => m !== exemptNextRoundMember);
         exemptNextRoundMember = null;
@@ -989,7 +886,7 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
-      // 后续轮次若有人在当轮先做饭后买菜，继续触发下轮豁免
+      // 检查当前轮是否有先做饭后买菜的情况
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
@@ -1000,33 +897,30 @@
         }
       });
 
-      const altIdx = (i % 2); // 0 和 1 交替
-      roundList.push({
+      const altIdx = (i % 2);
+      const rndObj = {
         roundIndex: i,
         startDate: curStartDate,
         endDate: curEndDate,
         roster: curRoster,
         length: cycleDays,
         altIdx: altIdx
+      };
+      roundList.push(rndObj);
+
+      curRoster.forEach((leader, dIdx) => {
+        const dStr = addDays(curStartDate, dIdx);
+        dateScheduleMap[dStr] = {
+          round: rndObj,
+          leader: leader,
+          altIdx: altIdx
+        };
       });
 
       curStartDate = addDays(curEndDate, 1);
     }
 
-    // 建立 日期 -> 详细排班数据
-    const dateScheduleMap = {};
-    roundList.forEach(rnd => {
-      rnd.roster.forEach((leader, dIdx) => {
-        const dStr = addDays(rnd.startDate, dIdx);
-        dateScheduleMap[dStr] = {
-          round: rnd,
-          leader: leader,
-          altIdx: rnd.altIdx
-        };
-      });
-    });
-
-    // 顶班还班追踪
+    // 3. 计算还班欠账与具体还班日期
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -1085,26 +979,25 @@
 
     let currentRound = roundList.find(r => todayStr >= r.startDate && todayStr <= r.endDate);
     if (!currentRound) {
-      currentRound = roundList.find(r => r.roundIndex === 0) || roundList[0];
+      currentRound = roundList[0]; // 默认指向 9月29日 开始的新一轮
     }
 
     const rangeStr = `${formatMMDD(currentRound.startDate)} ~ ${formatMMDD(currentRound.endDate)}`;
 
-    // 生成红绿值日进度链条
+    // 格式化值日进度顺位
     const progressList = currentRound.roster.map((leader, idx) => {
       const dutyDate = addDays(currentRound.startDate, idx);
       const dayRecords = dutyMapByDate[dutyDate] || [];
       const cookRecord = dayRecords.find(r => r.type === 'daily' || r.type === 'replace');
 
       if (cookRecord) {
-        const replaceTag = cookRecord.type === 'replace' ? `(${cookRecord.member}替)` : '';
-        return `<span class="status-done">${leader}${replaceTag}</span>`;
-      } else {
-        return `<span class="status-undone">${leader}</span>`;
+        if (cookRecord.type === 'replace') {
+          return `<span class="text-done">${leader}(${cookRecord.member}替)</span>`;
+        }
+        return `<span class="text-done">${leader}</span>`;
       }
+      return `<span class="text-undone">${leader}</span>`;
     });
-
-    const progressChainHtml = progressList.join('<span class="arrow-sep">→</span>');
 
     let repayTipHtml = '';
     if (repayTips && repayTips.length > 0) {
@@ -1113,11 +1006,9 @@
 
     const reportBox = document.getElementById('report-daily-text');
     reportBox.innerHTML = `
-      <div style="margin-bottom: 5px;">
-        <strong>【本轮周期】</strong> <span style="color:#4f46e5; font-weight:bold;">${rangeStr}</span>
-      </div>
-      <div>
-        <strong>值日进度</strong>：${progressChainHtml}
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <div><strong>【本轮周期】</strong> <span style="color:#4f46e5; font-weight:bold;">${rangeStr}</span></div>
+        <div style="font-size:0.85rem;"><strong>值日进度</strong>：${progressList.join(' → ')}</div>
       </div>
       ${repayTipHtml}
     `;
@@ -1158,8 +1049,7 @@
       const scheduleInfo = dateScheduleMap[dStr];
       const isToday = dStr === todayStr;
 
-      // 9月18日之前彻底留白不显示轮次顶条，9月18日及之后根据强制与推演结果显示色系
-      if (dStr >= "2026-09-18" && scheduleInfo) {
+      if (scheduleInfo) {
         cell.classList.add(`cycle-round-${scheduleInfo.altIdx}`);
       }
 
@@ -1188,8 +1078,7 @@
           cell.appendChild(badge);
         });
       } else {
-        // 9月18日及之后未打卡的日期显示预期负责人
-        if (dStr >= "2026-09-18" && scheduleInfo && scheduleInfo.leader) {
+        if (scheduleInfo && scheduleInfo.leader) {
           const planSpan = document.createElement('div');
           planSpan.className = `plan-leader-text cycle-text-${scheduleInfo.altIdx}`;
           planSpan.innerText = scheduleInfo.leader;
@@ -1216,7 +1105,7 @@
     const rangeStr = `${formatMMDD(curStart)} ~ ${formatMMDD(curEnd)}`;
     const thisRoundRecords = halfRecords.filter(r => r.date >= curStart && r.date <= curEnd);
     const doneMembers = [...new Set(thisRoundRecords.map(r => r.member))];
-    const undoneMembers = members.filter(m => !doneMembers.includes(m));
+    const undoneMembers = baseOrder.filter(m => !doneMembers.includes(m));
 
     const doneHtml = doneMembers.length > 0 
       ? doneMembers.map(m => `<span style="color:#16a34a; font-weight:bold; margin:0 3px;">✓ ${m}</span>`).join('') 
@@ -1327,7 +1216,7 @@
       if (!el) return;
       const cur = el.value;
       el.innerHTML = '';
-      members.forEach(m => {
+      baseOrder.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m;
         opt.innerText = m;
