@@ -175,22 +175,27 @@
       margin: 0 0 10px 0;
       padding-bottom: 8px;
       border-bottom: 1px dashed #cbd5e1;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       line-height: 1.5;
     }
     .report-content {
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       color: #1e293b;
     }
-    .text-done {
+    
+    /* 顺位值日进度的状态颜色 */
+    .status-done {
       color: #16a34a;
       font-weight: bold;
-      margin: 0 3px;
     }
-    .text-undone {
+    .status-undone {
       color: #dc2626;
       font-weight: bold;
-      margin: 0 3px;
+    }
+    .arrow-sep {
+      color: #94a3b8;
+      margin: 0 4px;
+      font-size: 0.8rem;
     }
 
     .repay-tip-bar {
@@ -256,8 +261,7 @@
       font-weight: 900;
     }
 
-    /* ================= 方案 A：顶部粗彩条 + 背景微色阶 ================= */
-    /* 轮次 A：清爽蓝调体系 */
+    /* 方案 A 视觉：顶部粗彩条 + 背景微色阶 */
     .cycle-round-0 {
       background-color: #f0f7ff !important;
       border-color: #bfdbfe !important;
@@ -267,10 +271,9 @@
       color: #1e40af !important;
     }
     .cycle-text-0 {
-      color: #1d4ed8 !important; /* 轮次A未到日期：醒目纯正深蓝字 */
+      color: #1d4ed8 !important;
     }
 
-    /* 轮次 B：温暖琥珀橙调体系 */
     .cycle-round-1 {
       background-color: #fffbeb !important;
       border-color: #fde68a !important;
@@ -280,7 +283,7 @@
       color: #b45309 !important;
     }
     .cycle-text-1 {
-      color: #b45309 !important; /* 轮次B未到日期：醒目暖琥珀字 */
+      color: #b45309 !important;
     }
 
     .plan-leader-text {
@@ -294,7 +297,7 @@
       text-overflow: ellipsis;
     }
 
-    /* 全局统一打卡单色徽章 */
+    /* 全局统一打卡胶囊徽章 */
     .duty-badge {
       font-size: 0.65rem;
       padding: 1px 2px;
@@ -940,7 +943,7 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 推演算法（方案A色系绑定） =====================
+  // ===================== 严格推演（起点锚定9月18日，本轮9月24日~28日免XB） =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -953,25 +956,23 @@
 
     const roundList = [];
 
-    // 1. 向前倒推 15 轮 (严格以 baseCycleStart 2026-09-24 为界向前，每轮 6 天)
-    for (let p = 15; p >= 1; p--) {
-      const pStart = addDays(baseCycleStart, -6 * p);
-      const pEnd = addDays(pStart, 5);
-      const altIdx = (Math.abs(-p) % 2);
-      roundList.push({
-        roundIndex: -p,
-        startDate: pStart,
-        endDate: pEnd,
-        roster: [...members],
-        length: 6,
-        altIdx: altIdx
-      });
-    }
+    // 1. 上一轮：2026-09-18 至 2026-09-23（6人全员）
+    const prevStart = "2026-09-18";
+    const prevEnd = "2026-09-23";
+    roundList.push({
+      roundIndex: -1,
+      startDate: prevStart,
+      endDate: prevEnd,
+      roster: [...members],
+      length: 6,
+      altIdx: 1 // 琥珀暖色
+    });
 
-    // 2. 本轮（第 0 轮：2026-09-24 ~ 2026-09-28，XB 减免，5人）
+    // 2. 本轮：从 baseCycleStart (2026-09-24) 开始
+    // 因上一轮 XB 既做饭又买菜，本轮免除 XB，共 5 人：AL, LH, AS, SZ, QH
     const round0Roster = members.filter(m => m !== 'XB');
-    const round0Len = round0Roster.length;
-    const round0End = addDays(baseCycleStart, round0Len - 1);
+    const round0Len = round0Roster.length; // 5 天
+    const round0End = addDays(baseCycleStart, round0Len - 1); // 2026-09-28
 
     roundList.push({
       roundIndex: 0,
@@ -982,8 +983,8 @@
       altIdx: 0 // 蓝色系
     });
 
-    // 3. 从 2026-09-29 开始向后推演 35 轮（交替色）
-    let curStartDate = addDays(round0End, 1);
+    // 3. 从 2026-09-29 开始，XB 恢复排班，继续向后推演 35 轮
+    let curStartDate = addDays(round0End, 1); // 2026-09-29
     let exemptNextRoundMember = null;
 
     for (let i = 1; i <= 35; i++) {
@@ -996,6 +997,7 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
+      // 后续轮次若有人在当轮先做饭后买菜，继续触发下轮豁免
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
@@ -1070,7 +1072,7 @@
       }
 
       const dateText = foundDate ? formatMMDDChinese(foundDate) : '近期';
-      repayTips.push(`📌 <strong>还班提醒</strong>：<strong>${dateText} ${debtor} 还 ${creditor} 的替班</strong>`);
+      repayTips.push(`📌 <strong>${dateText} ${debtor} 还 ${creditor} 的替班</strong>`);
     });
 
     return { roundList, dateScheduleMap, dutyMapByDate, repayTips };
@@ -1084,6 +1086,7 @@
     renderMantouLogic();
   }
 
+  // 极简顶部汇报：只保留纯净周期 + 合并红绿的值日进度 + 极简还班
   function renderMainGridAndReport(roundList, dateScheduleMap, dutyMapByDate, repayTips) {
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1094,27 +1097,21 @@
 
     const rangeStr = `${formatMMDD(currentRound.startDate)} ~ ${formatMMDD(currentRound.endDate)}`;
 
-    const doneHtmlList = [];
-    const undoneHtmlList = [];
-
-    currentRound.roster.forEach((leader, idx) => {
+    // 生成红绿值日进度链条：AL(绿) -> LH(绿) -> AS(绿) -> SZ(绿) -> QH(红)
+    const progressList = currentRound.roster.map((leader, idx) => {
       const dutyDate = addDays(currentRound.startDate, idx);
       const dayRecords = dutyMapByDate[dutyDate] || [];
       const cookRecord = dayRecords.find(r => r.type === 'daily' || r.type === 'replace');
 
       if (cookRecord) {
-        if (cookRecord.type === 'replace') {
-          doneHtmlList.push(`<span class="text-done">✓ ${leader}(${cookRecord.member}替)</span>`);
-        } else {
-          doneHtmlList.push(`<span class="text-done">✓ ${leader}</span>`);
-        }
+        const replaceTag = cookRecord.type === 'replace' ? `(${cookRecord.member}替)` : '';
+        return `<span class="status-done">${leader}${replaceTag}</span>`;
       } else {
-        undoneHtmlList.push(`<span class="text-undone">✗ ${leader}</span>`);
+        return `<span class="status-undone">${leader}</span>`;
       }
     });
 
-    const doneDisplay = doneHtmlList.length > 0 ? doneHtmlList.join(' ') : '<span style="color:#94a3b8;">无</span>';
-    const undoneDisplay = undoneHtmlList.length > 0 ? undoneHtmlList.join(' ') : '<span class="text-done">🎉 本轮已全员完成！</span>';
+    const progressChainHtml = progressList.join('<span class="arrow-sep">→</span>');
 
     let repayTipHtml = '';
     if (repayTips && repayTips.length > 0) {
@@ -1123,12 +1120,11 @@
 
     const reportBox = document.getElementById('report-daily-text');
     reportBox.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-        <div><strong>【本轮周期】</strong> <span style="color:#4f46e5; font-weight:bold;">${rangeStr}</span> (共 ${currentRound.length} 天，XB买菜已减免)</div>
-        <div style="font-size:0.82rem; color:#64748b;">本轮顺位：<strong>${currentRound.roster.join(' → ')}</strong></div>
+      <div style="margin-bottom: 5px;">
+        <strong>【本轮周期】</strong> <span style="color:#4f46e5; font-weight:bold;">${rangeStr}</span>
       </div>
-      <div style="margin-top:4px;">
-        <strong>值日进度</strong>：${doneDisplay} &nbsp;|&nbsp; ${undoneDisplay}
+      <div>
+        <strong>值日进度</strong>：${progressChainHtml}
       </div>
       ${repayTipHtml}
     `;
@@ -1169,8 +1165,8 @@
       const scheduleInfo = dateScheduleMap[dStr];
       const isToday = dStr === todayStr;
 
-      // 方案 A 视觉核心：每个格子根据所在轮次，拥有专属彩条与色调底色
-      if (scheduleInfo) {
+      // 9月18日之前的旧历史不渲染轮班背景色，9月18日起严格采用方案A双色顶条
+      if (dStr >= "2026-09-18" && scheduleInfo) {
         cell.classList.add(`cycle-round-${scheduleInfo.altIdx}`);
       }
 
@@ -1199,7 +1195,8 @@
           cell.appendChild(badge);
         });
       } else {
-        if (scheduleInfo && scheduleInfo.leader) {
+        // 9月18日及之后未打卡的日期显示预期负责人
+        if (dStr >= "2026-09-18" && scheduleInfo && scheduleInfo.leader) {
           const planSpan = document.createElement('div');
           planSpan.className = `plan-leader-text cycle-text-${scheduleInfo.altIdx}`;
           planSpan.innerText = scheduleInfo.leader;
