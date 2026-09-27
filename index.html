@@ -10,7 +10,7 @@
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #1e293b;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -111,17 +111,20 @@
     .cal-controls {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-size: 0.9rem;
+      flex-wrap: wrap;
     }
     .cal-btn {
       background: #f1f5f9;
-      border: 1px solid var(--border);
-      padding: 4px 10px;
+      border: 1px solid #cbd5e1;
+      padding: 5px 10px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.85rem;
+      font-weight: 500;
     }
+    .cal-btn:hover { background: #e2e8f0; }
 
     .tab-bar {
       display: flex;
@@ -190,7 +193,6 @@
       margin: 0 4px;
     }
 
-    /* 极简还班提示条 */
     .repay-tip-bar {
       margin-top: 6px;
       padding: 6px 10px;
@@ -209,26 +211,26 @@
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
+      gap: 6px;
     }
     .cal-header-cell {
       text-align: center;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #64748b;
-      padding: 4px 0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #475569;
+      padding: 6px 0;
     }
     .cal-day-cell {
-      border: 1px solid #e2e8f0;
+      border: 1.5px solid #cbd5e1;
       border-radius: 8px;
-      min-height: 65px;
+      min-height: 72px;
       padding: 4px 6px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       gap: 2px;
       box-sizing: border-box;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
       position: relative;
     }
     .cal-day-cell.empty {
@@ -236,34 +238,33 @@
       border-color: transparent !important;
     }
     .cal-day-num {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      font-weight: 600;
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 700;
       margin-bottom: 2px;
     }
     .cal-today {
-      outline: 2px solid #4f46e5;
-      outline-offset: -2px;
+      outline: 3px solid #4f46e5;
+      outline-offset: -1px;
     }
     .cal-today .cal-day-num {
       color: #4f46e5;
-      font-weight: bold;
+      font-size: 0.85rem;
     }
 
-    /* 周期交替浅色背景 */
-    .cycle-bg-0 { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; }
-    .cycle-bg-1 { background-color: #eff6ff !important; border-color: #bfdbfe !important; }
-    .cycle-bg-2 { background-color: #fff7ed !important; border-color: #fed7aa !important; }
-    .cycle-bg-3 { background-color: #faf5ff !important; border-color: #e9d5ff !important; }
-    .cycle-bg-4 { background-color: #fdf2f8 !important; border-color: #fbcfe8 !important; }
-    .cycle-bg-5 { background-color: #f0fdfa !important; border-color: #99f6e4 !important; }
+    /* 醒目加深的轮班交替背景色与彩条区分 */
+    .cycle-bg-0 { background-color: #dcfce7 !important; border-color: #86efac !important; border-left: 4px solid #16a34a !important; } /* 鲜明绿 */
+    .cycle-bg-1 { background-color: #dbeafe !important; border-color: #93c5fd !important; border-left: 4px solid #2563eb !important; } /* 鲜明蓝 */
+    .cycle-bg-2 { background-color: #ffedd5 !important; border-color: #fdba74 !important; border-left: 4px solid #ea580c !important; } /* 鲜明橙 */
+    .cycle-bg-3 { background-color: #f3e8ff !important; border-color: #d8b4fe !important; border-left: 4px solid #9333ea !important; } /* 鲜明紫 */
+    .cycle-bg-4 { background-color: #fce7f3 !important; border-color: #f9a8d4 !important; border-left: 4px solid #db2777 !important; } /* 鲜明粉 */
+    .cycle-bg-5 { background-color: #ccfbf1 !important; border-color: #5eead4 !important; border-left: 4px solid #0d9488 !important; } /* 鲜明青 */
 
-    /* 未打卡时排班负责人（浅灰色） */
     .plan-leader-text {
-      font-size: 0.76rem;
-      color: #94a3b8;
-      font-weight: 600;
-      margin-top: 4px;
+      font-size: 0.78rem;
+      color: #64748b;
+      font-weight: 700;
+      margin-top: 6px;
       text-align: center;
       line-height: 1.2;
     }
@@ -277,14 +278,14 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
       margin-bottom: 2px;
     }
-    .badge-act-daily { background: #3b82f6; color: white; }
-    .badge-act-replace { background: #8b5cf6; color: white; }
-    .badge-act-buy { background: #f59e0b; color: white; }
+    .badge-act-daily { background: #2563eb; color: white; }
+    .badge-act-replace { background: #7c3aed; color: white; }
+    .badge-act-buy { background: #d97706; color: white; }
     .badge-half-tag { background: #0284c7; color: white; }
-    .badge-mantou-tag { background: #10b981; color: white; }
+    .badge-mantou-tag { background: #059669; color: white; }
 
     .form-grid {
       display: grid;
@@ -358,7 +359,7 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.45);
+      background: rgba(15, 23, 42, 0.5);
       backdrop-filter: blur(2px);
       display: none;
       align-items: center;
@@ -371,8 +372,8 @@
       border-radius: 12px;
       padding: 22px;
       width: 100%;
-      max-width: 400px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      max-width: 440px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
     }
   </style>
 </head>
@@ -394,10 +395,11 @@
     <div class="card-title">
       <span>📅 值日轮次日历视图</span>
       <div class="cal-controls">
+        <button class="cal-btn" onclick="openConfigModal()" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">⚙️ 设置排班与本轮起点</button>
         <button class="cal-btn" onclick="changeMonth(-1)">◀ 上月</button>
         <strong id="calendar-current-month" style="color:#0f172a;">2026年9月</strong>
         <button class="cal-btn" onclick="changeMonth(1)">下月 ▶</button>
-        <button class="cal-btn" onclick="fetchData(true)" style="background:#e0e7ff; color:#3730a3;">🔄 刷新</button>
+        <button class="cal-btn" onclick="fetchData(true)" style="background:#f1f5f9;">🔄 刷新</button>
       </div>
     </div>
 
@@ -407,7 +409,6 @@
       <button class="tab-btn" id="btn-tab-mantou" onclick="switchTab('mantou')">3. QH做馒头</button>
     </div>
 
-    <!-- 分页 1: 轮流做饭 -->
     <div class="tab-pane active" id="pane-daily">
       <div class="cal-wrapper">
         <div class="cal-report-header">
@@ -417,7 +418,6 @@
       </div>
     </div>
 
-    <!-- 分页 2: 半天值日搭档 -->
     <div class="tab-pane" id="pane-half">
       <div class="cal-wrapper">
         <div class="cal-report-header">
@@ -427,7 +427,6 @@
       </div>
     </div>
 
-    <!-- 分页 3: QH 做馒头 -->
     <div class="tab-pane" id="pane-mantou">
       <div class="cal-wrapper">
         <div class="cal-report-header">
@@ -493,19 +492,25 @@
       </table>
     </div>
   </div>
+</div>
 
-  <!-- 名单设置 -->
-  <div class="card" style="border-style: dashed;">
-    <div class="card-title">
-      <span>⚙️ 基础轮班顺位配置</span>
-      <button style="width: auto; padding: 4px 10px; font-size: 0.8rem;" onclick="toggleSettings()">展开/收起</button>
+<!-- 设置排班与本轮起点 弹窗 -->
+<div class="modal-overlay" id="config-modal">
+  <div class="modal-card">
+    <h3 style="margin-top:0; font-size:1.15rem; color:#1e293b;">⚙️ 排班顺位与本轮起点设置</h3>
+    <div style="margin-bottom: 14px;">
+      <label>本轮轮班开始日期：</label>
+      <input type="date" id="cfg-base-date" />
+      <span style="font-size: 0.78rem; color: #64748b;">设置本轮第一人（如AL）负责的起始日期，以此基准推演所有轮次。</span>
     </div>
-    <div id="settings-box" style="display: none; font-size: 0.85rem;">
-      <div style="margin-bottom: 12px;">
-        <label>固定排班顺位 (逗号分隔)：</label>
-        <input type="text" id="cfg-members" value="AL, LH, AS, SZ, XB, QH" />
-      </div>
-      <button class="btn-primary" style="background:#334155;" onclick="saveMembers()">保存并更新排班</button>
+    <div style="margin-bottom: 18px;">
+      <label>固定排班顺位 (英文逗号分隔)：</label>
+      <input type="text" id="cfg-members-input" />
+      <span style="font-size: 0.78rem; color: #64748b;">示例：AL, LH, AS, SZ, XB, QH</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-primary" onclick="saveConfigSettings()">保存并更新排班</button>
+      <button style="background: #e2e8f0; color: #475569;" onclick="closeConfigModal()">取消</button>
     </div>
   </div>
 </div>
@@ -557,17 +562,13 @@
 </div>
 
 <script>
-  // Cloudflare Worker 代理网址[cite: 4]
-  const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";
+  const WORKER_API_URL = "https://soft-wind-9c12.forjiminigm.workers.dev";[cite: 4]
 
-  // 基准轮班顺位：AL, LH, AS, SZ, XB, QH
   let members = ["AL", "LH", "AS", "SZ", "XB", "QH"];
+  let baseCycleStart = "2026-09-24";
   let records = [];
   let recordIdToDelete = null;
   let currentCalDate = new Date();
-
-  // 本轮基准起始锚点：2026年9月24日 AL 开始
-  const BASE_CYCLE_START = "2026-09-24";
 
   function switchTab(type) {
     ['daily', 'half', 'mantou'].forEach(t => {
@@ -608,9 +609,37 @@
     document.getElementById('status-text').innerText = text;
   }
 
-  function toggleSettings() {
-    const el = document.getElementById('settings-box');
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  function openConfigModal() {
+    document.getElementById('cfg-base-date').value = baseCycleStart;
+    document.getElementById('cfg-members-input').value = members.join(', ');
+    document.getElementById('config-modal').style.display = 'flex';
+  }
+
+  function closeConfigModal() {
+    document.getElementById('config-modal').style.display = 'none';
+  }
+
+  async function saveConfigSettings() {
+    const newDate = document.getElementById('cfg-base-date').value;
+    const memStr = document.getElementById('cfg-members-input').value.trim();
+    if (!newDate) return showToast('请选择本轮开始日期', 'error');
+    if (!memStr) return showToast('顺位不能为空', 'error');
+
+    const newMembers = memStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    try {
+      updateStatus('syncing', '正在保存排班配置...');
+      await pushToCloud(records, newMembers, newDate);
+      members = newMembers;
+      baseCycleStart = newDate;
+      renderMemberSelects();
+      renderAllCalendars();
+      closeConfigModal();
+      updateStatus('online', '已连接云端 (免密稳定同步)');
+      showToast('排班与本轮起点已更新保存！');
+    } catch (e) {
+      showToast('保存失败: ' + e.message, 'error');
+      updateStatus('error', '保存失败');
+    }
   }
 
   function changeMonth(offset) {
@@ -636,7 +665,9 @@
 
       if (data.members && Array.isArray(data.members)) {
         members = data.members;
-        document.getElementById('cfg-members').value = members.join(', ');
+      }
+      if (data.baseCycleStart) {
+        baseCycleStart = data.baseCycleStart;
       }
       records = Array.isArray(data.records) ? data.records : [];
 
@@ -652,9 +683,10 @@
     }
   }
 
-  async function pushToCloud(newRecords, newMembers) {
+  async function pushToCloud(newRecords, newMembers, newBaseStart) {
     const bodyPayload = JSON.stringify({
       members: newMembers || members,
+      baseCycleStart: newBaseStart || baseCycleStart,
       records: newRecords
     }, null, 2);
 
@@ -696,7 +728,7 @@
       }
 
       currentRecords.unshift(newRecord);
-      await pushToCloud(currentRecords, members);
+      await pushToCloud(currentRecords, members, baseCycleStart);
 
       records = currentRecords;
       renderRecords();
@@ -728,7 +760,7 @@
     try {
       updateStatus('syncing', '正在删除...');
       const newRecords = records.filter(r => r.id !== recordIdToDelete);
-      await pushToCloud(newRecords, members);
+      await pushToCloud(newRecords, members, baseCycleStart);
       records = newRecords;
       renderRecords();
       renderAllCalendars();
@@ -785,7 +817,7 @@
         return r;
       });
 
-      await pushToCloud(newRecords, members);
+      await pushToCloud(newRecords, members, baseCycleStart);
       records = newRecords;
       renderRecords();
       renderAllCalendars();
@@ -801,18 +833,14 @@
   function formatMMDD(dateStr) {
     if (!dateStr) return '';
     const parts = dateStr.split('-');
-    if (parts.length >= 3) {
-      return parts[1] + parts[2];
-    }
+    if (parts.length >= 3) return parts[1] + parts[2];
     return dateStr;
   }
 
   function formatMMDDChinese(dateStr) {
     if (!dateStr) return '';
     const parts = dateStr.split('-');
-    if (parts.length >= 3) {
-      return `${parts[1]}月${parts[2]}日`;
-    }
+    if (parts.length >= 3) return `${parts[1]}月${parts[2]}日`;
     return dateStr;
   }
 
@@ -822,7 +850,7 @@
     return d.toISOString().split('T')[0];
   }
 
-  // ===================== 核心推算与顶班还班追踪 =====================
+  // ===================== 核心严格轮班切分推演 =====================
   function calculateDutyTimeline() {
     const cookingRecords = records.filter(r => r.type === 'daily' || r.type === 'replace');
     const buyRecords = records.filter(r => r.type === 'buy');
@@ -834,23 +862,27 @@
     });
 
     const roundList = [];
-    let curStartDate = BASE_CYCLE_START;
-    let exemptNextRoundMember = null;
 
-    // 前推 5 轮
-    for (let p = 5; p >= 1; p--) {
-      const pStart = addDays(BASE_CYCLE_START, -6 * p);
+    // 1. 从基准日向前倒推 10 轮（严格以 baseCycleStart 为分界点向前推，每轮6天）
+    // 确保 9月24日之前的轮次（如 9月18日~9月23日）拥有独立的轮次颜色
+    for (let p = 10; p >= 1; p--) {
+      const pStart = addDays(baseCycleStart, -6 * p);
+      const pEnd = addDays(pStart, 5);
+      const cIdx = ((600 - p) % 6);
       roundList.push({
         roundIndex: -p,
         startDate: pStart,
-        endDate: addDays(pStart, 5),
+        endDate: pEnd,
         roster: [...members],
         length: 6,
-        colorIndex: ((p % 6) + 6) % 6
+        colorIndex: cIdx
       });
     }
 
-    // 后推 30 轮
+    // 2. 从基准日往后推演 30 轮（本轮从 baseCycleStart 开始，色系索引为 0）
+    let curStartDate = baseCycleStart;
+    let exemptNextRoundMember = null;
+
     for (let i = 0; i < 30; i++) {
       let curRoster = [...members];
       if (exemptNextRoundMember) {
@@ -861,7 +893,7 @@
       const cycleDays = curRoster.length;
       const curEndDate = addDays(curStartDate, cycleDays - 1);
 
-      // 仅当“先做饭后买菜”时，下轮减为5人
+      // 若在当前轮次内“先做饭后买菜”，下轮豁免为5人
       const roundBuys = buyRecords.filter(r => r.date >= curStartDate && r.date <= curEndDate);
       roundBuys.forEach(br => {
         const hasCookedBefore = cookingRecords.some(cr => 
@@ -884,6 +916,7 @@
       curStartDate = addDays(curEndDate, 1);
     }
 
+    // 日期映射字典
     const dateScheduleMap = {};
     roundList.forEach(rnd => {
       rnd.roster.forEach((leader, dIdx) => {
@@ -897,17 +930,14 @@
     });
 
     // 统计顶班与还班抵消
-    // A 替 B 做饭 -> 产生 B 欠 A 一次值日
-    // 之后若 B 替 A 做饭，或者在 A 负责的那天 B 实际做了饭打卡 -> 两清抵消
     const replaceEvents = records
       .filter(r => r.type === 'replace' && r.replacee)
       .sort((a, b) => (a.date > b.date ? 1 : -1));
 
-    // 计算净欠班对
-    const debtCounts = {}; // key: "欠班人(被替者)->债权人(替班者)"
+    const debtCounts = {};
     replaceEvents.forEach(r => {
-      const helper = r.member; // 帮做的人
-      const target = r.replacee; // 欠人情的人
+      const helper = r.member;
+      const target = r.replacee;
       const debtKey = `${target}->${helper}`;
       const reverseKey = `${helper}->${target}`;
 
@@ -918,7 +948,6 @@
       }
     });
 
-    // 还班预告：找到将来的哪一天应由谁还谁
     const repayTips = [];
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -926,7 +955,6 @@
       if (count <= 0) return;
       const [debtor, creditor] = pair.split('->');
 
-      // 寻找未来排班负责人是 creditor（债权人），且尚未打卡的日期
       let foundDate = null;
       for (let offset = 0; offset < 60; offset++) {
         const checkD = addDays(todayStr, offset);
@@ -950,13 +978,8 @@
   function renderAllCalendars() {
     const { roundList, dateScheduleMap, dutyMapByDate, repayTips } = calculateDutyTimeline();
 
-    // 1. 渲染轮流做饭视图
     renderMainGridAndReport(roundList, dateScheduleMap, dutyMapByDate, repayTips);
-
-    // 2. 渲染半天搭档
     renderHalfDutyLogic();
-
-    // 3. 渲染做馒头
     renderMantouLogic();
   }
 
@@ -970,7 +993,6 @@
 
     const rangeStr = `${formatMMDD(currentRound.startDate)} ~ ${formatMMDD(currentRound.endDate)}`;
 
-    // 统计本轮每位排班负责人的完成情况（绿 / 红）
     const doneHtmlList = [];
     const undoneHtmlList = [];
 
@@ -993,7 +1015,6 @@
     const doneDisplay = doneHtmlList.length > 0 ? doneHtmlList.join(' ') : '<span style="color:#94a3b8;">无</span>';
     const undoneDisplay = undoneHtmlList.length > 0 ? undoneHtmlList.join(' ') : '<span class="text-done">🎉 本轮已全员完成！</span>';
 
-    // 拼接简洁的还班提醒条
     let repayTipHtml = '';
     if (repayTips && repayTips.length > 0) {
       repayTipHtml = `<div class="repay-tip-bar">${repayTips.join('<span style="color:#cbd5e1;">|</span>')}</div>`;
@@ -1003,6 +1024,7 @@
     reportBox.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
         <div><strong>【本轮周期】</strong> <span style="color:#4f46e5; font-weight:bold;">${rangeStr}</span> (共 ${currentRound.length} 天)</div>
+        <div style="font-size:0.85rem; color:#64748b;">本轮顺位：<strong>${currentRound.roster.join(' → ')}</strong></div>
       </div>
       <div style="margin-top:4px;">
         <strong>值日进度</strong>：${doneDisplay} &nbsp;|&nbsp; ${undoneDisplay}
@@ -1277,22 +1299,6 @@
       `;
       tbody.appendChild(tr);
     });
-  }
-
-  async function saveMembers() {
-    const memStr = document.getElementById('cfg-members').value.trim();
-    if (!memStr) return showToast('成员名单不能为空', 'error');
-    const newMembers = memStr.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-
-    try {
-      await pushToCloud(records, newMembers);
-      members = newMembers;
-      renderMemberSelects();
-      renderAllCalendars();
-      showToast('排班顺位已同步保存！');
-    } catch (e) {
-      showToast('修改失败: ' + e.message, 'error');
-    }
   }
 </script>
 </body>
